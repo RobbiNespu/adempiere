@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.Query;
 import org.compiere.util.CCache;
 import org.compiere.util.Env;
@@ -32,7 +33,8 @@ import org.compiere.util.Env;
  * 		@see FR [ 854 ] Add new columns for Concept Attribute</a>
  */
 public class MHRWorkGroup extends X_HR_WorkGroup {
-    /**
+
+	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -3426527194456182750L;
@@ -54,9 +56,10 @@ public class MHRWorkGroup extends X_HR_WorkGroup {
 	 * Get/Load Work group [CACHED]
 	 * @param ctx context
 	 * @param workGroupId
+	 * @param trxName
 	 * @return activity or null
 	 */
-	public static MHRWorkGroup getById(Properties ctx, int workGroupId) {
+	public static MHRWorkGroup getById(Properties ctx, int workGroupId, String trxName) {
 		if (workGroupId <= 0)
 			return null;
 
@@ -64,7 +67,7 @@ public class MHRWorkGroup extends X_HR_WorkGroup {
 		if (workGroup != null && workGroup.get_ID() > 0)
 			return workGroup;
 
-		workGroup = new Query(ctx , Table_Name , COLUMNNAME_HR_WorkGroup_ID + "=?" , null)
+		workGroup = new Query(ctx , Table_Name , COLUMNNAME_HR_WorkGroup_ID + "=?" , trxName)
 				.setClient_ID()
 				.setParameters(workGroupId)
 				.first();
@@ -82,9 +85,10 @@ public class MHRWorkGroup extends X_HR_WorkGroup {
 	 * get Activity By Value [CACHED]
 	 * @param ctx
 	 * @param workGroupValue
+	 * @param trxName
 	 * @return
 	 */
-	public static MHRWorkGroup getByValue(Properties ctx , String workGroupValue) {
+	public static MHRWorkGroup getByValue(Properties ctx, String workGroupValue, String trxName) {
 		if (workGroupValue == null)
 			return null;
 		if (workGroupCacheValues.size() == 0 )
@@ -96,7 +100,7 @@ public class MHRWorkGroup extends X_HR_WorkGroup {
 		if (workGroup != null && workGroup.get_ID() > 0 )
 			return workGroup;
 
-		workGroup =  new Query(ctx, Table_Name , COLUMNNAME_Value +  "=?", null)
+		workGroup =  new Query(ctx, Table_Name , COLUMNNAME_Value +  "=?", trxName)
 				.setClient_ID()
 				.setParameters(workGroupValue)
 				.first();
@@ -133,5 +137,22 @@ public class MHRWorkGroup extends X_HR_WorkGroup {
 				.map(workGroup -> workGroup.getValue())
 				.collect(Collectors.toList());
 		return  workGroupList;
+	}
+	
+	@Override
+	protected boolean beforeSave(boolean newRecord) {
+		if(isShiftAllocation()) {
+			if(getHR_ShiftGroup_ID() == 0
+					&& getHR_WorkShift_ID() == 0) {
+				throw new AdempiereException("@HR_ShiftGroup_ID@ / @HR_WorkShift_ID@ @IsMandatory@");
+			}
+		}
+		return true;
+	}
+	
+    @Override
+	public String toString() {
+		return "MHRWorkGroup [getHR_WorkGroup_ID()=" + getHR_WorkGroup_ID() + ", getName()=" + getName()
+				+ ", getValue()=" + getValue() + "]";
 	}
 }

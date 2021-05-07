@@ -22,7 +22,7 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Interface for C_DocType
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0
+ *  @version Release 3.9.3
  */
 public interface I_C_DocType 
 {
@@ -119,6 +119,21 @@ public interface I_C_DocType
 	public int getC_DocTypeInvoice_ID();
 
 	public org.compiere.model.I_C_DocType getC_DocTypeInvoice() throws RuntimeException;
+
+    /** Column name C_DocTypePayment_ID */
+    public static final String COLUMNNAME_C_DocTypePayment_ID = "C_DocTypePayment_ID";
+
+	/** Set Document Type for Payment.
+	  * Document type used for Payments generated from this Pay Selection document
+	  */
+	public void setC_DocTypePayment_ID (int C_DocTypePayment_ID);
+
+	/** Get Document Type for Payment.
+	  * Document type used for Payments generated from this Pay Selection document
+	  */
+	public int getC_DocTypePayment_ID();
+
+	public org.compiere.model.I_C_DocType getC_DocTypePayment() throws RuntimeException;
 
     /** Column name C_DocTypeProforma_ID */
     public static final String COLUMNNAME_C_DocTypeProforma_ID = "C_DocTypeProforma_ID";
@@ -311,6 +326,28 @@ public interface I_C_DocType
 	  */
 	public boolean isActive();
 
+    /** Column name IsAllocateImmediate */
+    public static final String COLUMNNAME_IsAllocateImmediate = "IsAllocateImmediate";
+
+	/** Set Allocate Prepayments	  */
+	public void setIsAllocateImmediate (boolean IsAllocateImmediate);
+
+	/** Get Allocate Prepayments	  */
+	public boolean isAllocateImmediate();
+
+    /** Column name IsBankTransfer */
+    public static final String COLUMNNAME_IsBankTransfer = "IsBankTransfer";
+
+	/** Set Bank Transfer.
+	  * Bank Transfer
+	  */
+	public void setIsBankTransfer (boolean IsBankTransfer);
+
+	/** Get Bank Transfer.
+	  * Bank Transfer
+	  */
+	public boolean isBankTransfer();
+
     /** Column name IsCopyDocNoOnReversal */
     public static final String COLUMNNAME_IsCopyDocNoOnReversal = "IsCopyDocNoOnReversal";
 
@@ -419,6 +456,19 @@ public interface I_C_DocType
 
 	/** Get Overwrite Sequence on Complete	  */
 	public boolean isOverwriteSeqOnComplete();
+
+    /** Column name IsPayrollPayment */
+    public static final String COLUMNNAME_IsPayrollPayment = "IsPayrollPayment";
+
+	/** Set Payroll Payment.
+	  * Used for mark a document type or payment for identify as payment of payroll
+	  */
+	public void setIsPayrollPayment (boolean IsPayrollPayment);
+
+	/** Get Payroll Payment.
+	  * Used for mark a document type or payment for identify as payment of payroll
+	  */
+	public boolean isPayrollPayment();
 
     /** Column name IsPickQAConfirm */
     public static final String COLUMNNAME_IsPickQAConfirm = "IsPickQAConfirm";

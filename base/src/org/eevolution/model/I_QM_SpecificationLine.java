@@ -23,7 +23,7 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Interface for QM_SpecificationLine
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0
+ *  @version Release 3.9.2
  */
 public interface I_QM_SpecificationLine 
 {

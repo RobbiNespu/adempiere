@@ -66,10 +66,12 @@ public class Language implements Serializable
 	private static final String AD_Language_de_DE = "de_DE";
 	private static final String AD_Language_it_IT = "it_IT";
 	private static final String AD_Language_es_ES = "es_ES";
+	private static final String AD_Language_es_SV = "es_SV";
 	private static final String AD_Language_es_MX = "es_MX";
 	private static final String AD_Language_es_CO = "es_CO";
 	private static final String AD_Language_es_DO = "es_DO";
 	private static final String AD_Language_es_VE = "es_VE";
+	private static final String AD_Language_es_PA = "es_PA";
 	private static final String AD_Language_fr_FR = "fr_FR";
 	private static final String AD_Language_fr_CA = "fr_CA";
 	private static final String AD_Language_bg_BG = "bg_BG";
@@ -117,7 +119,7 @@ public class Language implements Serializable
 			AD_Language_ca_ES, new Locale("ca", "ES"), null, "dd/MM/yyyy",
 			MediaSize.ISO.A4),
 		new Language ("Deutsch",
-			AD_Language_de_DE,  Locale.GERMANY, null, null,
+			AD_Language_de_DE,  Locale.GERMANY,new Boolean(true), "dd.MM.yyyy",
 			MediaSize.ISO.A4),
 		new Language ("Dansk",
 			AD_Language_da_DK,  new Locale("da","DK"),  new Boolean(false), "dd-MM-yyyy",
@@ -134,6 +136,10 @@ public class Language implements Serializable
 		new Language ("Espa\u00f1ol",
 			AD_Language_es_ES,  new Locale("es","ES"), new Boolean(false), "dd/MM/yyyy",
 			MediaSize.ISO.A4),
+		new Language ("Espa\u00f1ol (SV)",
+		    AD_Language_es_SV,  new Locale("es","SV"), new Boolean(true), "dd/MM/yyyy",
+			MediaSize.NA.LETTER),
+
 		new Language ("Espa\u00f1ol (MX)",
 			AD_Language_es_MX,  new Locale("es","MX"), new Boolean(true), "dd/MM/yyyy",
 			MediaSize.NA.LETTER),
@@ -142,7 +148,10 @@ public class Language implements Serializable
 			MediaSize.NA.LETTER),
 		new Language ("Espa\u00f1ol (VE)",
 			AD_Language_es_VE,  new Locale("es","VE"), new Boolean(false), "dd/MM/yyyy",
-			MediaSize.NA.LETTER),				
+			MediaSize.NA.LETTER),
+		new Language ("Espa\u00f1ol (PA)",
+				AD_Language_es_PA,  new Locale("es","PA"), new Boolean(true), "dd/MM/yyyy",
+				MediaSize.NA.LETTER),
 		new Language ("Espa\u00f1ol (EC)",
 			AD_Language_es_ES,  new Locale("es","ES"), new Boolean(false), "dd/MM/yyyy",
 			MediaSize.ISO.A4),
@@ -159,10 +168,10 @@ public class Language implements Serializable
 			AD_Language_fi_FI,  new Locale("fi","FI"),  new Boolean(true), "dd.MM.yyyy",
 			MediaSize.ISO.A4),
 		new Language ("Fran\u00e7ais",
-			AD_Language_fr_FR,  Locale.FRANCE,  null, null,		//  dd.MM.yy
+			AD_Language_fr_FR,  Locale.FRANCE, new Boolean(true), "dd-MM-yyyy",		//  dd.MM.yy
 			MediaSize.ISO.A4),
 		new Language ("Fran\u00e7ais (CA)",
-			AD_Language_fr_CA,  new Locale("fr","CA"),  new Boolean(true), "MM/dd/yyyy",	// MM/dd/yy
+			AD_Language_fr_CA,  new Locale("fr","CA"),  new Boolean(false), "MM/dd/yyyy",	// MM/dd/yy
 			MediaSize.NA.LETTER),
 		new Language ("Hrvatski",
 			AD_Language_hr_HR, new Locale("hr", "HR"), null, "dd.MM.yyyy",
@@ -171,7 +180,7 @@ public class Language implements Serializable
 			AD_Language_in_ID, new Locale("in","ID"), new Boolean(false), "dd-MM-yyyy",
 			MediaSize.ISO.A4),
 		new Language ("Italiano",
-			AD_Language_it_IT,  Locale.ITALY,   null, null,		//  dd.MM.yy
+			AD_Language_it_IT,  Locale.ITALY,   new Boolean(true), "dd.MM.yyyy",		//  dd.MM.yy
 			MediaSize.ISO.A4),
 		new Language ("\u65e5\u672c\u8a9e (JP)",
 			AD_Language_ja_JP, Locale.JAPAN, null, null,

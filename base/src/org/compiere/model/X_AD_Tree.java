@@ -23,14 +23,14 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Model for AD_Tree
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0 - $Id$ */
+ *  @version Release 3.9.2 - $Id$ */
 public class X_AD_Tree extends PO implements I_AD_Tree, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170731L;
+	private static final long serialVersionUID = 20191120L;
 
     /** Standard Constructor */
     public X_AD_Tree (Properties ctx, int AD_Tree_ID, String trxName)
@@ -74,6 +74,62 @@ public class X_AD_Tree extends PO implements I_AD_Tree, I_Persistent
         .append(get_ID()).append("]");
       return sb.toString();
     }
+
+	public org.compiere.model.I_AD_Column getAD_ColumnSortOrder() throws RuntimeException
+    {
+		return (org.compiere.model.I_AD_Column)MTable.get(getCtx(), org.compiere.model.I_AD_Column.Table_Name)
+			.getPO(getAD_ColumnSortOrder_ID(), get_TrxName());	}
+
+	/** Set Order Column.
+		@param AD_ColumnSortOrder_ID 
+		Column determining the order
+	  */
+	public void setAD_ColumnSortOrder_ID (int AD_ColumnSortOrder_ID)
+	{
+		if (AD_ColumnSortOrder_ID < 1) 
+			set_Value (COLUMNNAME_AD_ColumnSortOrder_ID, null);
+		else 
+			set_Value (COLUMNNAME_AD_ColumnSortOrder_ID, Integer.valueOf(AD_ColumnSortOrder_ID));
+	}
+
+	/** Get Order Column.
+		@return Column determining the order
+	  */
+	public int getAD_ColumnSortOrder_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_AD_ColumnSortOrder_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.compiere.model.I_AD_Table getAD_Table() throws RuntimeException
+    {
+		return (org.compiere.model.I_AD_Table)MTable.get(getCtx(), org.compiere.model.I_AD_Table.Table_Name)
+			.getPO(getAD_Table_ID(), get_TrxName());	}
+
+	/** Set Table.
+		@param AD_Table_ID 
+		Database Table information
+	  */
+	public void setAD_Table_ID (int AD_Table_ID)
+	{
+		if (AD_Table_ID < 1) 
+			set_ValueNoCheck (COLUMNNAME_AD_Table_ID, null);
+		else 
+			set_ValueNoCheck (COLUMNNAME_AD_Table_ID, Integer.valueOf(AD_Table_ID));
+	}
+
+	/** Get Table.
+		@return Database Table information
+	  */
+	public int getAD_Table_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_AD_Table_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
 
 	/** Set Tree.
 		@param AD_Tree_ID 
@@ -188,6 +244,34 @@ public class X_AD_Tree extends PO implements I_AD_Tree, I_Persistent
         return new KeyNamePair(get_ID(), getName());
     }
 
+	public org.compiere.model.I_AD_Column getParent_Column() throws RuntimeException
+    {
+		return (org.compiere.model.I_AD_Column)MTable.get(getCtx(), org.compiere.model.I_AD_Column.Table_Name)
+			.getPO(getParent_Column_ID(), get_TrxName());	}
+
+	/** Set Parent Column.
+		@param Parent_Column_ID 
+		The link column on the parent tab.
+	  */
+	public void setParent_Column_ID (int Parent_Column_ID)
+	{
+		if (Parent_Column_ID < 1) 
+			set_Value (COLUMNNAME_Parent_Column_ID, null);
+		else 
+			set_Value (COLUMNNAME_Parent_Column_ID, Integer.valueOf(Parent_Column_ID));
+	}
+
+	/** Get Parent Column.
+		@return The link column on the parent tab.
+	  */
+	public int getParent_Column_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_Parent_Column_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
 	/** Set Process Now.
 		@param Processing Process Now	  */
 	public void setProcessing (boolean Processing)
@@ -249,6 +333,8 @@ public class X_AD_Tree extends PO implements I_AD_Tree, I_Persistent
 	public static final String TREETYPE_CMTemplate = "CT";
 	/** CM Media = CM */
 	public static final String TREETYPE_CMMedia = "CM";
+	/** Custom Tree = CU */
+	public static final String TREETYPE_CustomTree = "CU";
 	/** Set Type | Area.
 		@param TreeType 
 		Element this tree is built on (i.e Product, Business Partner)

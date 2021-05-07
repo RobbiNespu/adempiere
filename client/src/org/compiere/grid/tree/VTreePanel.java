@@ -88,6 +88,7 @@ import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
+import org.compiere.util.Util;
 import org.jdesktop.swingx.JXTaskPane;
 import org.jdesktop.swingx.JXTaskPaneContainer;
 
@@ -121,6 +122,9 @@ import de.schaeffer.compiere.tools.DocumentSearch;
  * @author Yamel Senih, ysenih@erpcya.com, ERPCyA http://www.erpcya.com
  * 		<a href="https://github.com/adempiere/adempiere/issues/884">
  * 		@see FR [ 884 ] Recent Items in Dashboard (Add new functionality)</a>
+ * @author Carlos Parada, cparada@erpya.com, ERPCyA http://www.erpya.com
+ *  	<a href="https://github.com/adempiere/adempiere/issues/729">
+ *		@see FR [ 729 ] Add Support to Parent Column And Search Column for Tree </a>
  */
 public final class VTreePanel extends CPanel
 	implements ActionListener
@@ -201,13 +205,13 @@ public final class VTreePanel extends CPanel
 	 *  @param  editable    if true you can edit it
 	 *  @param  hasBar      has OutlookBar
 	 */
-	public VTreePanel(int windowNo, boolean hasBar, boolean editable)
-	{
+	public VTreePanel(int windowNo, boolean hasBar, boolean editable) {
 		super();
 		toolbarList = new ArrayList<JToolBar>();
 		log.config("Bar=" + hasBar + ", Editable=" + editable);
 		this.hasBar = hasBar;
 		this.editable = editable;
+		this.windowNo = windowNo;
 
 		//	static init
 		jbInit();
@@ -283,6 +287,8 @@ public final class VTreePanel extends CPanel
 	private boolean     hasBar;
 	/** The root node               */
 	private MTreeNode  	root = null;
+	/**	Window No	*/
+	private int 		windowNo = 0;
 
 
 	private String      m_search = "";
@@ -290,26 +296,39 @@ public final class VTreePanel extends CPanel
 	private MTreeNode   m_selectedNode;	//	the selected model node
 	private CButton     buttonSelected;
 	private JToolBar	toolSelected;
-
 	private JScrollPane barScrollPane;
 
 	/**	Property Listener NodeSelected	by Left Click		*/
 	public static final String NODE_SELECTION = "NodeSelected";
 
 	/**
+	 * Int tree without Where Clause
+	 * @param AD_Tree_ID
+	 * @return
+	 */
+	public boolean initTree (int AD_Tree_ID) {
+		return initTree(AD_Tree_ID, null);
+	}
+	
+	/**
 	 *  Tree initialization.
 	 * 	May be called several times
 	 *	@param	treeId	tree to load
 	 *  @return true if loaded ok
 	 */
-	public boolean initTree (int treeId)
-	{
+	public boolean initTree (int treeId, String whereClause) {
 		log.config("AD_Tree_ID=" + treeId);
 		//
 		this.treeId = treeId;
 
+		//	Yamel Senih [ 9223372036854775807 ]
+		//	Add Where Clause
+		if(!Util.isEmpty(whereClause)) {
+			whereClause = Env.parseContext(Env.getCtx(), windowNo, whereClause, false, false);
+		}
 		//  Get Tree
-		MTree vTree = new MTree (Env.getCtx(), treeId, editable, true, null);
+		MTree vTree = new MTree (Env.getCtx(), treeId, editable, false, whereClause, null);
+		//	End Yamel Senih
 		root = vTree.getRoot();
 		root.setName(Msg.getMsg(Env.getCtx(), vTree.getName()).replace("&" , "")); // translate name of menu.
 		// m_root.setName(Msg.getMsg(Env.getCtx(), "Menu") ); // @Trifon; this is the hardcoded way.
@@ -754,6 +773,21 @@ public final class VTreePanel extends CPanel
 	}   //  setSelectedNode
 
 	
+	/**
+	 * FR [ 729 ] 
+	 * Overwrite for ParentID
+	 * @param save
+	 * @param keyID
+	 * @param name
+	 * @param description
+	 * @param isSummary
+	 * @param imageIndicator
+	 */
+	public void nodeChanged (boolean save, int keyID,
+			String name, String description, boolean isSummary, String imageIndicator)
+		{
+		nodeChanged(save, keyID, name, description, isSummary, imageIndicator, 0);
+		}
 	/**************************************************************************
 	 *  Node Changed - synchronize Node
 	 *
@@ -765,7 +799,7 @@ public final class VTreePanel extends CPanel
 	 *  @param  imageIndicator image indicator
 	 */
 	public void nodeChanged (boolean save, int keyID,
-		String name, String description, boolean isSummary, String imageIndicator)
+		String name, String description, boolean isSummary, String imageIndicator, int parentID)
 	{
 		log.config("Save=" + save + ", KeyID=" + keyID
 			+ ", Name=" + name + ", Description=" + description 
@@ -777,13 +811,15 @@ public final class VTreePanel extends CPanel
 			
 		//  try to find the node
 		MTreeNode node = root.findNode(keyID);
+		//FR [ 729 ]
+		MTreeNode parentNode = root.findNode(parentID);
 
 		//  Node not found and saved -> new
 		if (node == null && save)
 		{
 			node = new MTreeNode (keyID, 0, name, description,
-				root.getNode_ID(), isSummary, imageIndicator, false, null);
-			root.add (node);
+					parentNode.getNode_ID(), isSummary, imageIndicator, false, null);
+			parentNode.add (node);
 		}
 
 		//  Node found and saved -> change
@@ -1049,6 +1085,13 @@ public final class VTreePanel extends CPanel
 	private void addToBar(MRecentItem recentItem, JToolBar currentToolBar, boolean isLabel) {
 		//	Only first word of Label
 		String label = recentItem.getLabel();
+		
+		// Item in the meantime not existent ?
+		if (label == null) {
+			recentItem.deleteEx(true);
+			return; // record could have been deleted
+		}
+		
 		if (!isLabel) {
 			//	Validate only menu option
 			if(recentItem.getAD_Menu_ID() == 0)

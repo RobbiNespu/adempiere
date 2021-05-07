@@ -41,7 +41,6 @@ import org.compiere.model.MProduct;
 import org.compiere.model.MProject;
 import org.compiere.model.MResource;
 import org.compiere.model.MStorage;
-import org.compiere.model.MTable;
 import org.compiere.model.MUOM;
 import org.compiere.model.MWarehouse;
 import org.compiere.model.ModelValidationEngine;
@@ -53,6 +52,7 @@ import org.compiere.print.ReportEngine;
 import org.compiere.process.DocAction;
 import org.compiere.process.DocumentEngine;
 import org.compiere.util.DB;
+import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
 import org.compiere.util.KeyNamePair;
 import org.compiere.util.Msg;
@@ -282,7 +282,7 @@ public class MPPOrder extends X_PP_Order implements DocAction
 	 * @param productBOMId
 	 * @param workflowId
 	 */
-	public MPPOrder(MProject project, int productBOMId, int workflowId)
+	public MPPOrder(MProject project, Integer productBOMId, Integer workflowId)
 	{
 		this(project.getCtx(), 0, project.get_TrxName());
 		setAD_Client_ID(project.getAD_Client_ID());
@@ -292,36 +292,23 @@ public class MPPOrder extends X_PP_Order implements DocAction
 		setDescription(project.getName());
 		setLine(10);
 		setPriorityRule(MPPOrder.PRIORITYRULE_Medium);
-		if (project.getDateContract() == null)
-			throw new IllegalStateException("Date Contract is mandatory for Manufacturing Order.");
-		if (project.getDateFinish() == null)
-			throw new IllegalStateException("Date Finish is mandatory for Manufacturing Order.");
-		
-		Timestamp ts = project.getDateContract();
-		Timestamp df= project.getDateContract();
-		
-		if (ts != null) setDateOrdered(ts);
-		if (ts != null) this.setDateStartSchedule(ts);
-		ts = project.getDateFinish();
-		if (df != null) setDatePromised(df);
-		setM_Warehouse_ID(project.getM_Warehouse_ID());
-		setPP_Product_BOM_ID(productBOMId);
-		setAD_Workflow_ID(workflowId);
-		setQtyEntered(Env.ONE);
-		setQtyOrdered(Env.ONE);
+		MWarehouse warehouse = MWarehouse.get(getCtx(), project.getM_Warehouse_ID() , get_TrxName());
+		if (warehouse == null || warehouse.getM_Warehouse_ID() <= 0)
+			throw  new AdempiereException("@M_Warehouse_ID@ @NotFound@ @To@ @C_Project_ID@ " + project.getName());
+		MResource resource = MResource.getDefaultPlant((MWarehouse) project.getM_Warehouse());
+		if (resource == null || resource.getS_Resource_ID() <= 0)
+			throw new AdempiereException("@S_Resource_ID@ @NotFound@ @To@ @M_Warehouse_ID@");
+
+		setM_Warehouse_ID(warehouse.getM_Warehouse_ID());
+		setS_Resource_ID(resource.getS_Resource_ID());
 		MPPProductBOM bom = new MPPProductBOM(project.getCtx(), productBOMId, project.get_TrxName());
 		MProduct product = MProduct.get(project.getCtx(), bom.getM_Product_ID());
-		setC_UOM_ID(product.getC_UOM_ID());
-		
+		setPP_Product_BOM_ID(productBOMId);
+		setAD_Workflow_ID(workflowId);
 		setM_Product_ID(bom.getM_Product_ID());
-		
-		String where = MResource.COLUMNNAME_IsManufacturingResource   +" = 'Y' AND "+ 
-					   MResource.COLUMNNAME_ManufacturingResourceType +" = '" + MResource.MANUFACTURINGRESOURCETYPE_Plant + "' AND " +
-					   MResource.COLUMNNAME_M_Warehouse_ID + " = " + project.getM_Warehouse_ID();
-		MResource resoruce = (MResource) MTable.get(project.getCtx(), MResource.Table_ID).getPO( where , project.get_TrxName());
-		if (resoruce == null)
-			throw new IllegalStateException("Resource is mandatory.");
-		setS_Resource_ID(resoruce.getS_Resource_ID());
+		setC_UOM_ID(product.getC_UOM_ID());
+		setQtyEntered(Env.ONE);
+		setQtyOrdered(Env.ONE);
 	} //	MOrder
 
 	/**
@@ -442,7 +429,7 @@ public class MPPOrder extends X_PP_Order implements DocAction
 		if( is_ValueChanged(MPPOrder.COLUMNNAME_QtyDelivered)
 				|| is_ValueChanged(MPPOrder.COLUMNNAME_QtyOrdered))
 		{	
-			orderStock();
+			orderedStock();
 		}
 
 		
@@ -502,7 +489,7 @@ public class MPPOrder extends X_PP_Order implements DocAction
 				   MPPOrder.DOCSTATUS_Completed.equals(getDocStatus()))
 		{	
 			setQtyOrdered(Env.ZERO);
-			orderStock();
+			orderedStock();
 		}	
 
 		return true;
@@ -602,12 +589,6 @@ public class MPPOrder extends X_PP_Order implements DocAction
 		{
 			; // nothing
 		}
-		// ManufacturingOrder, MaintenanceOrder
-		else
-		{
-			reserveStock(lines);
-			orderStock();
-		}
 		
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this, ModelValidator.TIMING_AFTER_PREPARE);
 		if (m_processMsg != null)
@@ -617,7 +598,7 @@ public class MPPOrder extends X_PP_Order implements DocAction
 		return DocAction.STATUS_InProgress;
 	} //	prepareIt
 
-	private void orderStock()
+	public void orderedStock()
 	{
 		MProduct product = getM_Product();
 		if (!product.isStocked())
@@ -632,11 +613,11 @@ public class MPPOrder extends X_PP_Order implements DocAction
 		}
 		BigDecimal ordered = difference;
 		
-		int M_Locator_ID = getM_Locator_ID(ordered);
+		int locatorId = getM_Locator_ID(ordered);
 		// Necessary to clear order quantities when called from closeIt - 4Layers
 		if (DOCACTION_Close.equals(getDocAction()))
 		{
-			if (!MStorage.add(getCtx(), getM_Warehouse_ID(), M_Locator_ID,
+			if (!MStorage.add(getCtx(), getM_Warehouse_ID(), locatorId,
 					getM_Product_ID(), getM_AttributeSetInstance_ID(),
 					getM_AttributeSetInstance_ID(), Env.ZERO, Env.ZERO, ordered, get_TrxName()))
 			{
@@ -646,7 +627,7 @@ public class MPPOrder extends X_PP_Order implements DocAction
 		else
 		{
 			//	Update Storage
-			if (!MStorage.add(getCtx(), getM_Warehouse_ID(), M_Locator_ID,
+			if (!MStorage.add(getCtx(), getM_Warehouse_ID(), locatorId,
 					getM_Product_ID(), getM_AttributeSetInstance_ID(),
 					getM_AttributeSetInstance_ID(), Env.ZERO, Env.ZERO, ordered, get_TrxName()))
 			{
@@ -667,7 +648,7 @@ public class MPPOrder extends X_PP_Order implements DocAction
 		//	Always check and (un) Reserve Inventory		
 		for (MPPOrderBOMLine line : lines)
 		{
-			line.reserveStock();
+			line.reservedStock();
 			line.saveEx();
 		}
 	} //	reserveStock
@@ -819,7 +800,7 @@ public class MPPOrder extends X_PP_Order implements DocAction
 			saveEx();
 		}	
 		
-		orderStock(); // Clear Ordered Quantities
+		orderedStock(); // Clear Ordered Quantities
 		reserveStock(getLines()); //	Clear Reservations
 		
 		m_processMsg = ModelValidationEngine.get().fireDocValidate(this,ModelValidator.TIMING_AFTER_VOID);
@@ -858,28 +839,29 @@ public class MPPOrder extends X_PP_Order implements DocAction
 		
 		for(MPPOrderBOMLine line : getLines())
 		{
-			BigDecimal old = line.getQtyRequired();
-			if (old.compareTo(line.getQtyDelivered()) != 0)
+			BigDecimal qtyRequired = line.getQtyRequired();
+			if (qtyRequired.compareTo(line.getQtyDelivered()) != 0)
 			{	
 				line.setQtyRequired(line.getQtyDelivered());
-				line.addDescription(Msg.parseTranslation(getCtx(), "@closed@ @QtyRequired@ (" + old + ")"));
+				line.addDescription(Msg.parseTranslation(getCtx(), "@closed@ @QtyRequired@ (" + DisplayType.getNumberFormat(DisplayType.Quantity).format(qtyRequired) + ")"));
 				line.saveEx();
-			}	
+			}
 		}
 		
 		//Close all the activity do not reported
-		MPPOrderWorkflow m_order_wf = getMPPOrderWorkflow(); 
-		m_order_wf.closeActivities(m_order_wf.getLastNode(getAD_Client_ID()), getUpdated(),false);
-		
-		BigDecimal old = getQtyOrdered();
-		if (old.signum() != 0)
-		{	
-			addDescription(Msg.parseTranslation(getCtx(),"@closed@ @QtyOrdered@ : (" + old + ")"));
+		MPPOrderWorkflow orderWorkflow = getMPPOrderWorkflow();
+		MPPOrderNode activity = orderWorkflow.getLastNode(getAD_Client_ID());
+		if (activity != null)
+			orderWorkflow.closeActivities(orderWorkflow.getLastNode(getAD_Client_ID()), getUpdated(),false);
+
+		BigDecimal quantityOrderdOld = getQtyOrdered();
+		if (quantityOrderdOld.signum() != 0) {
+			addDescription(Msg.parseTranslation(getCtx(), "@closed@ @QtyOrdered@ : (" + quantityOrderdOld + ")"));
 			setQtyOrdered(getQtyDelivered());
 			saveEx();
-		}	
+		}
 	
-		orderStock(); // Clear Ordered Quantities
+		orderedStock(); // Clear Ordered Quantities
 		reserveStock(getLines()); //	Clear Reservations
 		
 		setDocStatus(DOCSTATUS_Closed);

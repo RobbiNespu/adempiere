@@ -98,6 +98,7 @@ import org.compiere.util.Language;
 import org.compiere.util.Msg;
 import org.compiere.util.Util;
 import org.eevolution.form.VBrowser;
+import org.spin.util.ASPUtil;
 
 /**
  *	Main Panel of application window.
@@ -714,7 +715,7 @@ public final class APanel extends CPanel
 			}
 			//  Window Init
 			window.addChangeListener(this);
-
+			m_curWinTab = window;
 			/**
 			 *  Init Model
 			 */
@@ -800,7 +801,7 @@ public final class APanel extends CPanel
 					if (gTab.isSortTab())
 					{
 						VSortTab st = new VSortTab(m_curWindowNo, gTab.getAD_Table_ID(),
-							gTab.getAD_ColumnSortOrder_ID(), gTab.getAD_ColumnSortYesNo_ID());
+							gTab.getAD_ColumnSortOrder_ID(), gTab.getAD_ColumnSortYesNo_ID(), gTab.getParent_Column_ID());
 						st.setTabLevel(gTab.getTabLevel());
 						tabElement = st;
 					}
@@ -1263,7 +1264,11 @@ public final class APanel extends CPanel
 		String trxInfo = currentTab.getTrxInfo();
 		if (trxInfo != null)
 			statusBar.setInfo(trxInfo);
-
+		//	Reload Field
+		if (m_curWinTab.getSelectedComponent() instanceof GridController) {
+			GridController gridController = (GridController)m_curWinTab.getSelectedComponent();
+			gridController.reloadFieldTrxInfo();
+		}
 		//	Check Attachment
 		boolean canHaveAttachment = currentTab.canHaveAttachment();		//	not single _ID column
 		//
@@ -2680,8 +2685,7 @@ public final class APanel extends CPanel
 			pi.setAD_Client_ID (Env.getAD_Client_ID(ctx));
 			FormFrame ff = new FormFrame(getWindowNo());
 			ff.setProcessInfo(pi);
-			MBrowse browse = new MBrowse(Env.getCtx(), browse_ID , null);
-			new VBrowser(ff, true , getWindowNo(), "" , browse , "" , true, "", Env.isSOTrx(Env.getCtx(), m_curWindowNo));
+			new VBrowser(ff, true , getWindowNo(), "" , ASPUtil.getInstance().getBrowse(browse_ID), "" , true, "", Env.isSOTrx(Env.getCtx(), m_curWindowNo));
 			ff.pack();
 			AEnv.showCenterScreen(ff);
 			//	Yamel Senih
@@ -2695,7 +2699,8 @@ public final class APanel extends CPanel
 					record_ID, startWOasking);
 			//	FR [ 265 ]
 			//	BR [ 323 ]
-			if(!startWOasking) {
+			if(!startWOasking
+					&& !dialog.isAutoStart()) {
 				dialog.validate();
 				dialog.pack();
 				AEnv.showCenterWindow(Env.getWindow(m_curWindowNo), dialog);

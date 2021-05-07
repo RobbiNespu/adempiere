@@ -32,6 +32,8 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.Map.Entry;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.adempiere.exceptions.AdempiereException;
 import org.compiere.util.CCache;
@@ -470,6 +472,15 @@ public final class MRole extends X_AD_Role
 			+ "INNER JOIN AD_Role rol ON (rol.AD_Client_ID=client.AD_Client_ID "
 			+ "AND rol.AD_Role_ID=" + getAD_Role_ID() 
 			+ ") )";
+		
+		String sqlDashboard = "INSERT INTO AD_Dashboard_Access "
+				+ "(PA_DashboardContent_ID, AD_Role_ID,"
+				+ " AD_Client_ID,AD_Org_ID,IsActive,Created,CreatedBy,Updated,UpdatedBy) "
+				+ "SELECT b.PA_DashboardContent_ID, " + getAD_Role_ID() + ","
+				+ getAD_Client_ID() + "," + getAD_Org_ID() + ",'Y', SysDate," 
+				+ getUpdatedBy() + ", SysDate," + getUpdatedBy() + " "
+				+ "FROM PA_DashboardContent b "
+				+ "WHERE AccessLevel IN ";
 
 
 		/**
@@ -517,13 +528,17 @@ public final class MRole extends X_AD_Role
 		int wf = DB.executeUpdate(sqlWorkflow + roleAccessLevel, get_TrxName());
 		int docactDel = DB.executeUpdate("DELETE FROM AD_Document_Action_Access" + whereDel, get_TrxName());
 		int docact = DB.executeUpdate(sqlDocAction, get_TrxName());
+		int dashboardDel = DB.executeUpdate("DELETE FROM AD_Dashboard_Access" + whereDel, get_TrxName());
+		int dashboard = DB.executeUpdate(sqlDashboard + roleAccessLevel, get_TrxName());
 
 		log.fine("AD_Window_ID=" + winDel + "+" + win 
 			+ ", AD_Process_ID=" + procDel + "+" + proc
 			+ ", AD_Form_ID=" + formDel + "+" + form
 			+ ", AD_Browse_ID=" + browseDel + "+" + browse
 			+ ", AD_Workflow_ID=" + wfDel + "+" + wf
-			+ ", AD_Document_Action_Access=" + docactDel + "+" + docact);
+			+ ", AD_Document_Action_Access=" + docactDel + "+" + docact
+			+ ", PA_DashboardContent_ID=" + dashboardDel + "+" + dashboard
+			);
 		
 		loadAccess(true);
 		return "@AD_Window_ID@ #" + win 
@@ -531,7 +546,8 @@ public final class MRole extends X_AD_Role
 			+ " -  @AD_Form_ID@ #" + form
 			+ " -  @AD_Browse_ID@ #"+ browse
 			+ " -  @AD_Workflow_ID@ #" + wf
-			+ " -  @DocAction@ #" + docact;
+			+ " -  @DocAction@ #" + docact
+			+ " -  @PA_DashboardContent_ID@ #"+ dashboard;
 	}	//	createAccessRecords
 
 	/**
@@ -546,14 +562,15 @@ public final class MRole extends X_AD_Role
 		int browseDel = DB.executeUpdate("DELETE FROM AD_Browse_Access" + whereDel, get_TrxName());
 		int wfDel = DB.executeUpdate("DELETE FROM AD_WorkFlow_Access" + whereDel, get_TrxName());
 		int docactDel = DB.executeUpdate("DELETE FROM AD_Document_Action_Access" + whereDel, get_TrxName());
-		
+		int dashboardDel = DB.executeUpdate("DELETE FROM AD_Dashboard_Access" + whereDel, get_TrxName());
 
 		log.fine("AD_Window_Access=" + winDel
 			+ ", AD_Process_Access=" + procDel
 			+ ", AD_Form_Access=" + formDel
 			+ ", AD_Browse_Access=" + browseDel
 			+ ", AD_Workflow_Access=" + wfDel
-			+ ", AD_Document_Action_Access=" + docactDel);
+			+ ", AD_Document_Action_Access=" + docactDel
+			+ ", AD_Dashboard_Access=" + dashboardDel);
 	}
 	
 	/**
@@ -649,6 +666,8 @@ public final class MRole extends X_AD_Role
 	private HashMap<Integer,Boolean>	m_browseAccess = null;
 	/**	Info Windows			*/
 	private HashMap<Integer, Boolean>	m_infoAccess = null;
+	/**	DashBoard Browse Access				*/
+	private HashMap<Integer,Boolean>	m_dashboardAccess = null;
 	
 	/**
 	 * 	Set Logged in user
@@ -688,6 +707,7 @@ public final class MRole extends X_AD_Role
 			m_workflowAccess = null;
 			m_formAccess = null;
 			m_browseAccess = null;
+			m_dashboardAccess = null;
 		}
 
 		loadIncludedRoles(reload); // Load/Reload included roles - metas-2009_0021_AP1_G94
@@ -805,7 +825,7 @@ public final class MRole extends X_AD_Role
 		if (!org.isSummary())
 			return;
 		//	Summary Org - Get Dependents
-		MTree_Base tree = MTree_Base.get(getCtx(), getAD_Tree_Org_ID(), get_TrxName());
+		MTree tree = MTree.get(getCtx(), getAD_Tree_Org_ID(), get_TrxName());
 		String sql =  "SELECT AD_Client_ID, AD_Org_ID FROM AD_Org "
 			+ "WHERE IsActive='Y' AND AD_Org_ID IN (SELECT Node_ID FROM "
 			+ tree.getNodeTableName()
@@ -1523,7 +1543,7 @@ public final class MRole extends X_AD_Role
 			String ASPFilter = "";
 			if (client.isUseASP())
 				ASPFilter =
-					  "   AND (   AD_Window_ID IN ( "
+					  "   AND ((   AD_Window_ID IN ( "
 					// Just ASP subscribed windows for client "
 					+ "              SELECT w.AD_Window_ID "
 					+ "                FROM ASP_Window w, ASP_Level l, ASP_ClientLevel cl "
@@ -1554,7 +1574,15 @@ public final class MRole extends X_AD_Role
 					+ "             AND ce.AD_Window_ID IS NOT NULL "
 					+ "             AND ce.AD_Tab_ID IS NULL "
 					+ "             AND ce.AD_Field_ID IS NULL "
-					+ "             AND ce.ASP_Status = 'H')"; // Hide
+					+ "             AND ce.ASP_Status = 'H')"
+					//	Just Customization
+					+ " OR EXISTS(SELECT 1 FROM ASP_Level l "
+					+ "					INNER JOIN ASP_ClientLevel cl ON(cl.ASP_Level_ID = l.ASP_Level_ID) "
+					+ "				WHERE cl.AD_Client_ID = " + client.getAD_Client_ID()
+					+ "				AND l.IsActive = 'Y' "
+					+ "				AND cl.IsActive = 'Y' "
+					+ "				AND l.Type = 'C') "	//	Show
+					+ ")"; // Hide
 			String sql = "SELECT AD_Window_ID, IsReadWrite FROM AD_Window_Access WHERE AD_Role_ID=? AND IsActive='Y'" + ASPFilter;
 			PreparedStatement pstmt = null;
 			ResultSet rs = null;
@@ -1615,7 +1643,7 @@ public final class MRole extends X_AD_Role
 			String ASPFilter = "";
 			if (client.isUseASP())
 				ASPFilter =
-					  "   AND (   AD_Process_ID IN ( "
+					  "   AND ((   AD_Process_ID IN ( "
 					// Just ASP subscribed processes for client "
 					+ "              SELECT p.AD_Process_ID "
 					+ "                FROM ASP_Process p, ASP_Level l, ASP_ClientLevel cl "
@@ -1644,7 +1672,15 @@ public final class MRole extends X_AD_Role
 					+ "             AND ce.IsActive = 'Y' "
 					+ "             AND ce.AD_Process_ID IS NOT NULL "
 					+ "             AND ce.AD_Process_Para_ID IS NULL "
-					+ "             AND ce.ASP_Status = 'H')"; // Hide
+					+ "             AND ce.ASP_Status = 'H')"
+					//	Just Customization
+					+ " OR EXISTS(SELECT 1 FROM ASP_Level l "
+					+ "					INNER JOIN ASP_ClientLevel cl ON(cl.ASP_Level_ID = l.ASP_Level_ID) "
+					+ "				WHERE cl.AD_Client_ID = " + client.getAD_Client_ID()
+					+ "				AND l.IsActive = 'Y' "
+					+ "				AND cl.IsActive = 'Y' "
+					+ "				AND l.Type = 'C') "	//	Show
+					+ ")"; // Hide
 			String sql = "SELECT AD_Process_ID, IsReadWrite FROM AD_Process_Access WHERE AD_Role_ID=? AND IsActive='Y'" + ASPFilter;
 			PreparedStatement pstmt = null;
 			ResultSet rs = null;
@@ -1684,7 +1720,7 @@ public final class MRole extends X_AD_Role
 			String ASPFilter = "";
 			if (client.isUseASP())
 				ASPFilter =
-					  "   AND (   AD_Task_ID IN ( "
+					  "   AND ((   AD_Task_ID IN ( "
 					// Just ASP subscribed tasks for client "
 					+ "              SELECT t.AD_Task_ID "
 					+ "                FROM ASP_Task t, ASP_Level l, ASP_ClientLevel cl "
@@ -1711,7 +1747,15 @@ public final class MRole extends X_AD_Role
 					+ "           WHERE ce.AD_Client_ID = " + client.getAD_Client_ID()
 					+ "             AND ce.IsActive = 'Y' "
 					+ "             AND ce.AD_Task_ID IS NOT NULL "
-					+ "             AND ce.ASP_Status = 'H')"; // Hide
+					+ "             AND ce.ASP_Status = 'H')"
+					//	Just Customization
+					+ " OR EXISTS(SELECT 1 FROM ASP_Level l "
+					+ "					INNER JOIN ASP_ClientLevel cl ON(cl.ASP_Level_ID = l.ASP_Level_ID) "
+					+ "				WHERE cl.AD_Client_ID = " + client.getAD_Client_ID()
+					+ "				AND l.IsActive = 'Y' "
+					+ "				AND cl.IsActive = 'Y' "
+					+ "				AND l.Type = 'C') "	//	Show
+					+ ")"; // Hide
 			String sql = "SELECT AD_Task_ID, IsReadWrite FROM AD_Task_Access WHERE AD_Role_ID=? AND IsActive='Y'" + ASPFilter;
 			PreparedStatement pstmt = null;
 			ResultSet rs = null;
@@ -1752,7 +1796,7 @@ public final class MRole extends X_AD_Role
 			String ASPFilter = "";
 			if (client.isUseASP())
 				ASPFilter =
-					  "   AND (   AD_Form_ID IN ( "
+					  "   AND ((   AD_Form_ID IN ( "
 					// Just ASP subscribed forms for client "
 					+ "              SELECT f.AD_Form_ID "
 					+ "                FROM ASP_Form f, ASP_Level l, ASP_ClientLevel cl "
@@ -1779,7 +1823,15 @@ public final class MRole extends X_AD_Role
 					+ "           WHERE ce.AD_Client_ID = " + client.getAD_Client_ID()
 					+ "             AND ce.IsActive = 'Y' "
 					+ "             AND ce.AD_Form_ID IS NOT NULL "
-					+ "             AND ce.ASP_Status = 'H')"; // Hide
+					+ "             AND ce.ASP_Status = 'H')"
+					//	Just Customization
+					+ " OR EXISTS(SELECT 1 FROM ASP_Level l "
+					+ "					INNER JOIN ASP_ClientLevel cl ON(cl.ASP_Level_ID = l.ASP_Level_ID) "
+					+ "				WHERE cl.AD_Client_ID = " + client.getAD_Client_ID()
+					+ "				AND l.IsActive = 'Y' "
+					+ "				AND cl.IsActive = 'Y' "
+					+ "				AND l.Type = 'C') "	//	Show
+					+ ")"; // Hide
 			String sql = "SELECT AD_Form_ID, IsReadWrite FROM AD_Form_Access WHERE AD_Role_ID=? AND IsActive='Y'" + ASPFilter;
 			PreparedStatement pstmt = null;
 			ResultSet rs = null;
@@ -1832,7 +1884,7 @@ public final class MRole extends X_AD_Role
 			String ASPFilter = "";
 			if (client.isUseASP())
 				ASPFilter =
-					  "   AND (   AD_Browse_ID IN ( "
+					  "   AND ((   AD_Browse_ID IN ( "
 					// Just ASP subscribed forms for client "
 					+ "              SELECT b.AD_Browse_ID "
 					+ "                FROM ASP_Browse b, ASP_Level l, ASP_ClientLevel cl "
@@ -1859,7 +1911,15 @@ public final class MRole extends X_AD_Role
 					+ "           WHERE ce.AD_Client_ID = " + client.getAD_Client_ID()
 					+ "             AND ce.IsActive = 'Y' "
 					+ "             AND ce.AD_Browse_ID IS NOT NULL "
-					+ "             AND ce.ASP_Status = 'H')"; // Hide
+					+ "             AND ce.ASP_Status = 'H')"
+					//	Just Customization
+					+ " OR EXISTS(SELECT 1 FROM ASP_Level l "
+					+ "					INNER JOIN ASP_ClientLevel cl ON(cl.ASP_Level_ID = l.ASP_Level_ID) "
+					+ "				WHERE cl.AD_Client_ID = " + client.getAD_Client_ID()
+					+ "				AND l.IsActive = 'Y' "
+					+ "				AND cl.IsActive = 'Y' "
+					+ "				AND l.Type = 'C') "	//	Show
+					+ ")"; // Hide
 			String sql = "SELECT AD_Browse_ID, IsReadWrite FROM AD_Browse_Access WHERE AD_Role_ID=? AND IsActive='Y'" + ASPFilter;
 			PreparedStatement pstmt = null;
 			ResultSet rs = null;
@@ -1909,7 +1969,7 @@ public final class MRole extends X_AD_Role
 			String ASPFilter = "";
 			if (client.isUseASP())
 				ASPFilter =
-					  "   AND (   AD_Workflow_ID IN ( "
+					  "   AND ((   AD_Workflow_ID IN ( "
 					// Just ASP subscribed workflows for client "
 					+ "              SELECT w.AD_Workflow_ID "
 					+ "                FROM ASP_Workflow w, ASP_Level l, ASP_ClientLevel cl "
@@ -1936,7 +1996,15 @@ public final class MRole extends X_AD_Role
 					+ "           WHERE ce.AD_Client_ID = " + client.getAD_Client_ID()
 					+ "             AND ce.IsActive = 'Y' "
 					+ "             AND ce.AD_Workflow_ID IS NOT NULL "
-					+ "             AND ce.ASP_Status = 'H')"; // Hide
+					+ "             AND ce.ASP_Status = 'H')"
+					//	Just Customization
+					+ " OR EXISTS(SELECT 1 FROM ASP_Level l "
+					+ "					INNER JOIN ASP_ClientLevel cl ON(cl.ASP_Level_ID = l.ASP_Level_ID) "
+					+ "				WHERE cl.AD_Client_ID = " + client.getAD_Client_ID()
+					+ "				AND l.IsActive = 'Y' "
+					+ "				AND cl.IsActive = 'Y' "
+					+ "				AND l.Type = 'C') "	//	Show
+					+ ")"; // Hide
 			String sql = "SELECT AD_Workflow_ID, IsReadWrite FROM AD_Workflow_Access WHERE AD_Role_ID=? AND IsActive='Y'" + ASPFilter;
 			PreparedStatement pstmt = null;
 			ResultSet rs = null;
@@ -1962,6 +2030,41 @@ public final class MRole extends X_AD_Role
 		return retValue;
 	}	//	getTaskAccess
 
+	/**
+	 * 	Get Process Access
+	 *	@param PA_DashboardContent_ID process
+	 *	@return null in no access, TRUE if r/w and FALSE if r/o
+	 */
+	public Boolean getDashboardAccess (int PA_DashboardContent_ID) {
+		if (m_dashboardAccess == null)
+		{
+			m_dashboardAccess = new HashMap<Integer, Boolean>(50);
+			
+			
+			String sql = "SELECT PA_DashboardContent_ID, IsActive FROM AD_Dashboard_Access WHERE AD_Role_ID=? AND IsActive='Y'" ;
+			PreparedStatement pstmt = null;
+			ResultSet rs = null;
+			try
+			{
+				pstmt = DB.prepareStatement(sql, get_TrxName());
+				pstmt.setInt(1, getAD_Role_ID());
+				rs = pstmt.executeQuery();
+				while (rs.next())
+					m_dashboardAccess.put(new Integer(rs.getInt(1)), new Boolean("Y".equals(rs.getString(2))));
+			}
+			catch (Exception e)
+			{
+				log.log(Level.SEVERE, sql, e);
+			}
+			finally
+			{
+				DB.close(rs, pstmt);
+			}
+			mergeIncludedAccess("m_dashboardAccess"); // Load included accesses - metas-2009_0021_AP1_G94
+		}	//	reload
+		Boolean retValue = m_dashboardAccess.get(PA_DashboardContent_ID) == null ? false : m_dashboardAccess.get(PA_DashboardContent_ID);
+		return retValue;
+	}	//	getProcessAccess
 	
 	/*************************************************************************
 	 *	Appends where clause to SQL statement for Table
@@ -2105,7 +2208,7 @@ public final class MRole extends X_AD_Role
 				 if (column == null || column.isVirtualColumn() || !column.isActive())
 					 continue;
 			} else {
-				int posColumn = mainSql.indexOf(columnName);
+				int posColumn = getIndexOfColumn(mainSql, columnName);
 				if (posColumn == -1)
 					continue;
 				//	we found the column name - make sure it's a column name
@@ -2146,6 +2249,21 @@ public final class MRole extends X_AD_Role
 		log.finest(retSQL.toString());
 		return retSQL.toString();
 	}	//	addAccessSQL
+	
+	/**
+	 * Get Index of column from SQL finding with whole word
+	 * @param sql
+	 * @param columnName
+	 * @return
+	 */
+	private int getIndexOfColumn(String sql, String columnName) {
+		Matcher matcher = Pattern.compile("\\b" + columnName + "\\b").matcher(sql);
+		while (matcher.find()) {
+		    return matcher.start();
+		}
+		//	it not found
+		return -1;
+	}
 
 	/**
 	 * 	Get Dependent Access 
@@ -2210,7 +2328,7 @@ public final class MRole extends X_AD_Role
 	private String getDependentRecordWhereColumn (String mainSql, String columnName)
 	{
 		String retValue = columnName;	//	if nothing else found
-		int index = mainSql.indexOf(columnName);
+		int index = getIndexOfColumn(mainSql, columnName);
 		if (index == -1)
 			return retValue;
 		//	see if there are table synonym
@@ -3039,6 +3157,11 @@ public final class MRole extends X_AD_Role
 			getFormAccess(-1);
 			return m_formAccess;
 		}
+		else if ("m_dashboardAccess".equals(varname))
+		{
+			getDashboardAccess(-1);
+			return m_dashboardAccess;
+		}
 		else
 		{
 			throw new IllegalArgumentException("varname not supported - "+varname);
@@ -3065,6 +3188,10 @@ public final class MRole extends X_AD_Role
 		else if ("m_formAccess".equals(varname))
 		{
 			m_formAccess = map;
+		}
+		else if ("m_dashboardAccess".equals(varname))
+		{
+			m_dashboardAccess = map;
 		}
 		else
 		{

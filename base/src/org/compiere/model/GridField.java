@@ -43,6 +43,8 @@ import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
 import org.compiere.util.Evaluatee;
 import org.compiere.util.Evaluator;
+import org.compiere.util.TimeUtil;
+import org.spin.util.ASPUtil;
 
 /**
  *  Grid Field Model.
@@ -591,8 +593,8 @@ public class GridField
 		 */
 
 		//	No defaults for these fields
-		if (m_vo.IsKey || m_vo.displayType == DisplayType.RowID 
-			|| DisplayType.isLOB(m_vo.displayType))
+		if ((m_vo.IsKey && (getColumnNameAlias() == null || getColumnNameAlias().isEmpty())) || m_vo.displayType == DisplayType.RowID
+				|| DisplayType.isLOB(m_vo.displayType))
 			return null;
 		//	Set Parent to context if not explitly set
 		if (isParentValue()
@@ -637,7 +639,7 @@ public class GridField
 			sql = Env.parseContext(m_vo.ctx, m_vo.WindowNo, sql, false, false);	//	replace variables
 			if (sql.equals(""))
 			{
-				log.log(Level.WARNING, "(" + m_vo.ColumnName + ") - Default SQL variable parse failed: "
+				log.log(Level.CONFIG, "(" + m_vo.ColumnName + ") - Default SQL variable parse failed: "
 					+ m_vo.DefaultValue);
 			}
 			else
@@ -649,13 +651,13 @@ public class GridField
 					if (rs.next())
 						defStr = rs.getString(1);
 					else
-						log.log(Level.WARNING, "(" + m_vo.ColumnName + ") - no Result: " + sql);
+						log.log(Level.CONFIG, "(" + m_vo.ColumnName + ") - no Result: " + sql);
 					rs.close();
 					stmt.close();
 				}
 				catch (SQLException e)
 				{
-					log.log(Level.WARNING, "(" + m_vo.ColumnName + ") " + sql, e);
+					log.log(Level.CONFIG, "(" + m_vo.ColumnName + ") " + sql, e);
 				}
 			}
 			if (defStr != null && defStr.length() > 0)
@@ -810,6 +812,10 @@ public class GridField
 				} catch (java.text.ParseException e) {
 					date = DisplayType.getDateFormat_JDBC().parse (value);
 				}
+				if(DisplayType.Date == m_vo.displayType) {
+					return TimeUtil.getDay(date.getTime());
+				}
+				//	Default
 				return new Timestamp (date.getTime());
 			}
 			
@@ -1351,7 +1357,15 @@ public class GridField
 	{
 		return m_vo.AD_Process_ID;
 	}
-	
+
+	/** get AD_Image_ID
+	 * @return Image id
+	 */
+	public int getAD_Image_ID()
+	{
+		return m_vo.AD_Image_ID;
+	}
+
 	/** get AD_Chart_ID
 	 * @return chart id
 	 */
@@ -1794,50 +1808,19 @@ public class GridField
 	 * 	Create Fields.
 	 * 	Used by APanel.cmd_find  and  Viewer.cmd_find
 	 * 	@param ctx context
-	 * 	@param WindowNo window
-	 * 	@param TabNo tab no
-	 * 	@param AD_Tab_ID tab
+	 * 	@param windowNo window
+	 * 	@param tabNo tab no
+	 * 	@param tabId tab
 	 * 	@return array of all fields in display order
 	 */
-	public static GridField[] createFields (Properties ctx, int WindowNo, int TabNo,
-		 int AD_Tab_ID)
-	{
+	public static GridField[] createFields (Properties ctx, int windowNo, int tabNo, int tabId) {
 		ArrayList<GridFieldVO> listVO = new ArrayList<GridFieldVO>();
-		int AD_Window_ID = 0;
+		int windowId = 0;
 		boolean readOnly = false;
-		
-		String sql = GridFieldVO.getSQL(ctx);
-		PreparedStatement pstmt = null;
-		try
-		{
-			pstmt = DB.prepareStatement(sql, null);
-			pstmt.setInt(1, AD_Tab_ID);
-			ResultSet rs = pstmt.executeQuery();
-			while (rs.next())
-			{
-				GridFieldVO vo = GridFieldVO.create(ctx, WindowNo, TabNo, 
-					AD_Window_ID, AD_Tab_ID, readOnly, rs);
-				listVO.add(vo);
-			}
-			rs.close();
-			pstmt.close();
-			pstmt = null;
-		}
-		catch (Exception e)
-		{
-			log.log(Level.SEVERE, sql, e);
-		}
-		try
-		{
-			if (pstmt != null)
-				pstmt.close();
-			pstmt = null;
-		}
-		catch (Exception e)
-		{
-			pstmt = null;
-		}
-		
+		ASPUtil.getInstance(ctx).getWindowFields(tabId).stream().forEach(field -> {
+			GridFieldVO vo = GridFieldVO.create(ctx, windowNo, tabNo, windowId, tabId, readOnly, field);
+			listVO.add(vo);
+		});
 		//
 		GridField[] retValue = new GridField[listVO.size()];
 		for (int i = 0; i < listVO.size(); i++)
@@ -2091,5 +2074,21 @@ public class GridField
      */
     public boolean isInfoOnly() {
     	return m_vo.IsInfoOnly;
+    }
+    
+    /** Is Quick Entry
+	 * @return true if displayed in Quick Entry Form
+	 */
+	public boolean isQuickEntry()
+	{
+		return m_vo.IsQuickEntry;
+	}
+	
+    /**
+     * Is Information Only
+     * @return
+     */
+    public int getAD_FieldDefinition_ID() {
+    	return m_vo.AD_FieldDefinition_ID;
     }
 }   //  MField

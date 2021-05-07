@@ -19,9 +19,11 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
 import org.adempiere.exceptions.AdempiereException;
+import org.compiere.model.MBPartner;
 import org.compiere.model.MCurrency;
 import org.compiere.model.Query;
 import org.compiere.util.DB;
@@ -66,14 +68,24 @@ public class MHRMovement extends X_HR_Movement
 	 * @param referenceNo
 	 * @return
 	 */
-	public static List<MHRMovement> findByProcessAndConceptValueAndPartnerId(MHRProcess process, String conceptValue, int partnerId, String referenceNo, String description)
+	public static List<MHRMovement> findByProcessAndConceptValueAndPartnerId(
+			MHRProcess process,
+			String conceptValue,
+			int partnerId,
+			String referenceNo,
+			String description)
 	{
 		List<MHRMovement> movements =  new ArrayList<>();
-		MHRConcept concept = MHRConcept.getByValue(process.getCtx() , conceptValue);
+		MHRConcept concept = MHRConcept.getByValue(process.getCtx() , conceptValue, process.get_TrxName());
 		if (concept == null)
 			return  movements;
 
-		return findByProcessAndConceptIdAndPartnerId(process, concept.getHR_Concept_ID() , partnerId, referenceNo , description);
+		return findByProcessAndConceptIdAndPartnerId(
+				process,
+				concept.getHR_Concept_ID() ,
+				partnerId,
+				referenceNo ,
+				description);
 	}
 
 
@@ -86,7 +98,12 @@ public class MHRMovement extends X_HR_Movement
 	 * @param description
 	 * @return
 	*/
-	public static List<MHRMovement> findByProcessAndConceptIdAndPartnerId(MHRProcess process, int conceptId, int partnerId , String referenceNo , String description)
+	public static List<MHRMovement> findByProcessAndConceptIdAndPartnerId(
+			MHRProcess process,
+			int conceptId,
+			int partnerId ,
+			String referenceNo ,
+			String description)
 	{
 
 		List<MHRMovement> movements = new ArrayList<>();
@@ -119,9 +136,23 @@ public class MHRMovement extends X_HR_Movement
 		return movements;
 	}
 
-	public static  List<MHRMovement> findByConceptValueAndPartnerId(Properties ctx , String conceptValue , Integer partnerId  , String referenceNo , String description , String trxName)
+	public static  List<MHRMovement> findByConceptValueAndPartnerId(
+			Properties ctx ,
+			String conceptValue ,
+			Integer partnerId  ,
+			String referenceNo ,
+			String description ,
+			String trxName)
 	{
-		return findByConceptValueAndPartnerId(ctx , conceptValue, partnerId, referenceNo , description , null , null , trxName);
+		return findByConceptValueAndPartnerId(
+				ctx ,
+				conceptValue,
+				partnerId,
+				referenceNo ,
+				description ,
+				null ,
+				null ,
+				trxName);
 	}
 
 	/**
@@ -136,14 +167,22 @@ public class MHRMovement extends X_HR_Movement
 	 * @param trxName
 	 * @return
 	 */
-	public static  List<MHRMovement> findByConceptValueAndPartnerId(Properties ctx, String conceptValue , Integer partnerId, String referenceNo , String description , Timestamp from , Timestamp to , String trxName)
+	public static  List<MHRMovement> findByConceptValueAndPartnerId(
+			Properties ctx,
+			String conceptValue ,
+			Integer partnerId,
+			String referenceNo ,
+			String description ,
+			Timestamp from ,
+			Timestamp to ,
+			String trxName)
 	{
 		List<MHRMovement> movements =  new ArrayList<>();
 		List<Object> parameters = new ArrayList<>();
 		if (conceptValue == null)
 			return  movements;
 
-		MHRConcept concept = MHRConcept.getByValue(ctx, conceptValue);
+		MHRConcept concept = MHRConcept.getByValue(ctx, conceptValue, trxName);
 		if (concept == null)
 			return movements;
 
@@ -187,14 +226,43 @@ public class MHRMovement extends X_HR_Movement
 	/**
 	 * Helper Method: gets Concept value of a payroll between 2 dates
 	 * @param conceptValue
-	 * @param payrollValue
+	 * @param payrollId
 	 * @param partnerId business partner for search
 	 * @param from
 	 * @param to
+	 * @param trxName
 	 * */
-	public static double getConceptSum(Properties ctx, String conceptValue, int payroll_id, int partnerId, Timestamp from,Timestamp to) {
+	public static double getConceptSum(
+			Properties ctx, String
+			conceptValue,
+			int payrollId,
+			int partnerId,
+			Timestamp from,
+			Timestamp to,
+			String trxName) {
+		return getConceptSum(ctx,conceptValue,payrollId,partnerId,from,to,false,trxName);
+	}
+
+	/**
+	 * Helper Method: gets Concept value of a payroll between 2 dates
+	 * @param conceptValue
+	 * @param payrollId
+	 * @param partnerId business partner for search
+	 * @param from
+	 * @param to
+	 * @param includeInProcess
+	 * @param trxName      */
+	public static double getConceptSum(
+			Properties ctx,
+			String conceptValue,
+			int payrollId,
+			int partnerId,
+			Timestamp from,
+			Timestamp to,
+			boolean includeInProcess,
+			String trxName) {
 		
-		MHRConcept concept = MHRConcept.getByValue(ctx, conceptValue);
+		MHRConcept concept = MHRConcept.getByValue(ctx, conceptValue, trxName);
 		if (concept == null)
 			return 0.0;
 		//
@@ -223,12 +291,11 @@ public class MHRMovement extends X_HR_Movement
 		//
 		//check process and payroll
 		whereClause.append(" AND EXISTS (SELECT 1 FROM HR_Process p"
-							+" INNER JOIN HR_Period pr ON (pr.HR_Period_id=p.HR_Period_ID)"
-							+" WHERE HR_Movement.HR_Process_ID = p.HR_Process_ID" 
-							+" AND p.DocStatus IN('CO', 'CL')"
+							+" WHERE HR_Movement.HR_Process_ID = p.HR_Process_ID"
+							+" AND " + (includeInProcess ? "p.DocStatus IN('DR','IP', 'CO', 'CL')" : "p.DocStatus IN('CO', 'CL')")
 							+" AND p.HR_Payroll_ID=?");
 
-		params.add(payroll_id);
+		params.add(payrollId);
 		
 		whereClause.append(")");
 		//
@@ -239,18 +306,47 @@ public class MHRMovement extends X_HR_Movement
 		return value.doubleValue();
 		
 	} // getConcept
-	
+
 	/**
 	 * Helper Method: gets Concept AVG value of a payroll between 2 dates
 	 * @param conceptValue
-	 * @param payrollValue
+	 * @param payrollId
 	 * @param partnerId business partner for search
 	 * @param from
 	 * @param to
-	 * */
-	public static double getConceptAvg(Properties ctx, String conceptValue, int payroll_id, int partnerId, Timestamp from,Timestamp to) {
+	 * @param trxName
+	 */
+	public static double getConceptAvg(
+			Properties ctx,
+			String conceptValue,
+			int payrollId,
+			int partnerId,
+			Timestamp from,
+			Timestamp to,
+			String trxName) {
+		return getConceptAvg(ctx,conceptValue,payrollId,partnerId,from,to,true,trxName);
+	}
+
+		/**
+         * Helper Method: gets Concept AVG value of a payroll between 2 dates
+		 * @param conceptValue
+		 * @param payrollId
+		 * @param partnerId business partner for search
+		 * @param from
+		 * @param to
+		 * @param includeInProcess
+		 * @param trxName               */
+	public static double getConceptAvg(
+			Properties ctx,
+			String conceptValue,
+			int payrollId,
+			int partnerId,
+			Timestamp from,
+			Timestamp to,
+			boolean includeInProcess,
+			String trxName) {
 		
-		MHRConcept concept = MHRConcept.getByValue(ctx, conceptValue);
+		MHRConcept concept = MHRConcept.getByValue(ctx, conceptValue, trxName);
 		if (concept == null)
 			return 0.0;
 		//
@@ -279,12 +375,11 @@ public class MHRMovement extends X_HR_Movement
 		//
 		//check process and payroll
 		whereClause.append(" AND EXISTS (SELECT 1 FROM HR_Process p"
-							+" INNER JOIN HR_Period pr ON (pr.HR_Period_id=p.HR_Period_ID)"
-							+" WHERE HR_Movement.HR_Process_ID = p.HR_Process_ID" 
-							+" AND p.DocStatus IN('CO', 'CL')"
+							+" WHERE HR_Movement.HR_Process_ID = p.HR_Process_ID"
+							+" AND " + (includeInProcess? "p.DocStatus IN('DR', 'IP', 'CO', 'CL')" : "p.DocStatus IN('CO', 'CL')")
 							+" AND p.HR_Payroll_ID=?");
 
-		params.add(payroll_id);
+		params.add(payrollId);
 		
 		whereClause.append(")");
 		//
@@ -295,20 +390,55 @@ public class MHRMovement extends X_HR_Movement
 		return value.doubleValue();
 		
 	} // getConcept
-	
+
 	/**
 	 *  Helper Method : Concept by range from-to in periods from a different payroll
 	 *  periods with values 0 -1 1, etc. actual previous one period, next period
 	 *  0 corresponds to actual period
 	 *  @param conceptValue
-	 *  @param payroll ID is the ID of the payroll.
+	 *  @param payrollId ID is the ID of the payroll.
 	 *  @param partnerId business partner for search
 	 *  @param periodId period ID
 	 *  @param periodFrom
 	 *  @param periodTo the search is done by the period value, it helps to search from previous years
+	 *  @param trxName
 	 */
-	public static double getConceptSum(Properties ctx, String conceptValue, int payroll_id, int partnerId, int periodId, int periodFrom,int periodTo) {
-		MHRConcept concept = MHRConcept.getByValue(ctx, conceptValue);
+	public static double getConceptSum(
+			Properties ctx,
+			String conceptValue,
+			int payrollId,
+			int partnerId,
+			int periodId,
+			int periodFrom,
+			int periodTo,
+			String trxName) {
+		return getConceptSum(ctx,conceptValue,payrollId,partnerId,periodId,periodFrom,periodTo,true,trxName);
+	}
+
+	/**
+	 *  Helper Method : Concept by range from-to in periods from a different payroll
+	 *  periods with values 0 -1 1, etc. actual previous one period, next period
+	 *  0 corresponds to actual period
+	 * @param conceptValue
+	 * @param payrollId ID is the ID of the payroll.
+	 * @param partnerId business partner for search
+	 * @param periodId period ID
+	 * @param periodFrom
+	 * @param periodTo the search is done by the period value, it helps to search from previous years
+	 * @param includeInProcess
+	 * @param trxName
+	 */
+	public static double getConceptSum(
+			Properties ctx,
+			String conceptValue,
+			int payrollId,
+			int partnerId,
+			int periodId,
+			int periodFrom,
+			int periodTo,
+			boolean includeInProcess,
+			String trxName) {
+		MHRConcept concept = MHRConcept.getByValue(ctx, conceptValue, trxName);
 		if (concept == null)
 			return 0.0;
 		//
@@ -322,7 +452,7 @@ public class MHRMovement extends X_HR_Movement
 			return 0; // TODO: throw exception?
 		}
 		//
-		MHRPeriod period = MHRPeriod.get(ctx, periodId);
+		MHRPeriod period = MHRPeriod.getById(ctx, periodId, trxName);
 		ArrayList<Object> params = new ArrayList<Object>();
 		StringBuffer whereClause = new StringBuffer();
 		//check concept
@@ -335,11 +465,11 @@ public class MHRMovement extends X_HR_Movement
 		//check process and payroll
 		whereClause.append(" AND EXISTS (SELECT 1 FROM HR_Process p"
 				+" INNER JOIN HR_Period pr ON (pr.HR_Period_id=p.HR_Period_ID)"
-				+" WHERE HR_Movement.HR_Process_ID = p.HR_Process_ID" 
-				+" AND p.DocStatus IN('CO', 'CL')"
+				+" WHERE HR_Movement.HR_Process_ID = p.HR_Process_ID"
+				+" AND " + (includeInProcess? "p.DocStatus IN('DR', 'IP', 'CO', 'CL')" : "p.DocStatus IN('CO', 'CL')")
 				+" AND p.HR_Payroll_ID=?");
 
-		params.add(payroll_id);
+		params.add(payrollId);
 		if (periodFrom < 0) {
 			whereClause.append(" AND pr.PeriodNo >= ?");
 			params.add(period.getPeriodNo() +periodFrom);
@@ -359,28 +489,84 @@ public class MHRMovement extends X_HR_Movement
 	} // getConcept
 	
 	/**
-	 * Get a amount from the last concept
+	 * Get Last Movement for a concept value and a break date
 	 * @param ctx
 	 * @param conceptValue
-	 * @param payroll_id
+	 * @param payrollId
 	 * @param partnerId
 	 * @param breakDate
+	 * @param trxName
 	 * @return
 	 */
-	public static double getLastConcept(Properties ctx, String conceptValue, int payroll_id, int partnerId, Timestamp breakDate) {
-		MHRConcept concept = MHRConcept.getByValue(ctx, conceptValue);
-		if (concept == null)
-			return 0.0;
-		//
-		// Detect field name
-		final String fieldName;
-		if (MHRConcept.COLUMNTYPE_Quantity.equals(concept.getColumnType())) {
-			fieldName = MHRMovement.COLUMNNAME_Qty;
-		} else if (MHRConcept.COLUMNTYPE_Amount.equals(concept.getColumnType())) {
-			fieldName = MHRMovement.COLUMNNAME_Amount;
-		} else {
-			return 0; // TODO: throw exception?
+	public static MHRMovement getLastMovement(
+			Properties ctx,
+			String conceptValue,
+			int payrollId,
+			int partnerId,
+			Timestamp breakDate,
+			String trxName) {
+		return getLastMovement(ctx, conceptValue, payrollId, partnerId, breakDate, false, trxName);
+	}
+	
+	/**
+	 * Get Last movement based on values
+	 * @param ctx
+	 * @param conceptValue
+	 * @param payrollValue
+	 * @param partnerId
+	 * @param breakDate
+	 * @param isWithValidFrom
+	 * @param trxName
+	 * @return
+	 */
+	public static MHRMovement getLastMovement(
+			Properties ctx,
+			String conceptValue,
+			String payrollValue,
+			int partnerId,
+			Timestamp breakDate,
+			boolean isWithValidFrom,
+			String trxName) {
+		if(Util.isEmpty(payrollValue)) {
+			return null;
 		}
+		if(Util.isEmpty(conceptValue)) {
+			return null;
+		}
+		if(partnerId <= 0) {
+			return null;
+		}
+		//	Get payroll
+		MHRPayroll payroll = MHRPayroll.getByValue(ctx, payrollValue, trxName);
+		if(payroll == null) {
+			return null;
+		}
+		return getLastMovement(ctx, conceptValue, payroll.getHR_Payroll_ID(), partnerId, breakDate, isWithValidFrom, trxName);
+	}
+	
+	/**
+	 * Get Last Movement for a concept value and a break date
+	 * @param ctx
+	 * @param conceptValue
+	 * @param payrollId
+	 * @param partnerId
+	 * @param breakDate
+	 * @param isWithValidFrom
+	 * @param trxName
+	 * @return
+	 */
+	public static MHRMovement getLastMovement(
+			Properties ctx,
+			String conceptValue,
+			int payrollId,
+			int partnerId,
+			Timestamp breakDate,
+			boolean isWithValidFrom,
+			String trxName) {
+		MHRConcept concept = MHRConcept.getByValue(ctx, conceptValue, trxName);
+		if (concept == null)
+			return null;
+		//	
 		//
 		ArrayList<Object> params = new ArrayList<Object>();
 		StringBuffer whereClause = new StringBuffer();
@@ -391,7 +577,7 @@ public class MHRMovement extends X_HR_Movement
 		whereClause.append(" AND " + MHRMovement.COLUMNNAME_C_BPartner_ID  + "=?");
 		params.add(partnerId);
 		//Adding dates 
-		whereClause.append(" AND validTo <= ?");
+		whereClause.append(" AND ").append(isWithValidFrom? "ValidFrom": "ValidTo").append(" <= ?");
 		params.add(breakDate);
 		//
 		//check process and payroll
@@ -400,32 +586,141 @@ public class MHRMovement extends X_HR_Movement
 							+" AND p.DocStatus IN('CO', 'CL')"
 							+" AND p.HR_Payroll_ID=?");
 
-		params.add(payroll_id);
+		params.add(payrollId);
 		
 		whereClause.append(")");
+		//	return
+		return new Query(ctx, I_HR_Movement.Table_Name, whereClause.toString(), trxName)
+			.setParameters(params)
+			.setOrderBy(I_HR_Movement.COLUMNNAME_ValidFrom + " DESC")
+			.<MHRMovement>first();
+	}
+	
+	/**
+	 * Get a amount from the last concept
+	 * @param ctx
+	 * @param conceptValue
+	 * @param payrollId
+	 * @param partnerId
+	 * @param breakDate
+	 * @return
+	 */
+	public static double getLastConcept(
+			Properties ctx,
+			String conceptValue,
+			int payrollId,
+			int partnerId,
+			Timestamp breakDate,
+			String trxName) {
+		MHRConcept concept = MHRConcept.getByValue(ctx, conceptValue, trxName);
+		if (concept == null)
+			return 0.0;
 		//
-		StringBuffer sql = new StringBuffer("SELECT COALESCE(").append(fieldName).append(", 0) FROM ").append(MHRMovement.Table_Name)
-								.append(" WHERE ").append(whereClause).append(" ORDER BY " + I_HR_Movement.COLUMNNAME_ValidFrom + " DESC");
-		BigDecimal value = DB.getSQLValueBDEx(null, sql.toString(), params);
-		if(value != null)
-			return value.doubleValue();
+		// Detect field name
+		if (!MHRConcept.COLUMNTYPE_Quantity.equals(concept.getColumnType())
+				&& !MHRConcept.COLUMNTYPE_Amount.equals(concept.getColumnType())) {
+			return 0.0;
+		}
+		//	
+		MHRMovement lastMovement = getLastMovement(ctx, conceptValue, payrollId, partnerId, breakDate, trxName);
+		if(lastMovement == null) {
+			return 0.0;
+		}
+		//	
+		if(MHRConcept.COLUMNTYPE_Quantity.equals(concept.getColumnType())) {
+			if(lastMovement.getQty() != null) {
+				return lastMovement.getQty().doubleValue();
+			}
+		} else if(MHRConcept.COLUMNTYPE_Amount.equals(concept.getColumnType())) {
+			if(lastMovement.getAmount() != null) {
+				return lastMovement.getAmount().doubleValue();
+			}
+		}
 		//	Default
 		return 0.0;
 	}
 	
 	/**
+	 * Get a date from the last concept
+	 * @param ctx
+	 * @param conceptValue
+	 * @param payrollId
+	 * @param partnerId
+	 * @param breakDate
+	 * @return
+	 */
+	public static Timestamp getLastConceptDate(
+			Properties ctx,
+			String conceptValue,
+			int payrollId,
+			int partnerId,
+			Timestamp breakDate,
+			String trxName) {
+		MHRConcept concept = MHRConcept.getByValue(ctx, conceptValue , trxName);
+		if (concept == null)
+			return null;
+		//
+		// Detect field name
+		if (!MHRConcept.COLUMNTYPE_Date.equals(concept.getColumnType())) {
+			return null;
+		}
+		//	
+		MHRMovement lastMovement = getLastMovement(ctx, conceptValue, payrollId, partnerId, breakDate, trxName);
+		if(lastMovement == null) {
+			return null;
+		}
+		//	Default
+		return lastMovement.getServiceDate();
+	}
+
+	/**
 	 *  Helper Method : Concept AVG by range from-to in periods from a different payroll
 	 *  periods with values 0 -1 1, etc. actual previous one period, next period
 	 *  0 corresponds to actual period
-	 *  @param conceptValue
-	 *  @param payroll ID is the ID of the payroll.
-	 *  @param partnerId business partner for search
-	 *  @param periodId period ID
-	 *  @param periodFrom
-	 *  @param periodTo the search is done by the period value, it helps to search from previous years
+	 * @param conceptValue
+	 * @param payrollId ID is the ID of the payroll.
+	 * @param partnerId business partner for search
+	 * @param periodId period ID
+	 * @param periodFrom
+	 * @param periodTo the search is done by the period value, it helps to search from previous years
+	 * @param trxName
 	 */
-	public static double getConceptAvg(Properties ctx, String conceptValue, int payroll_id, int partnerId, int periodId, int periodFrom,int periodTo) {
-		MHRConcept concept = MHRConcept.getByValue(ctx, conceptValue);
+	public static double getConceptAvg(
+			Properties ctx,
+			String conceptValue,
+			int payrollId,
+			int partnerId,
+			int periodId,
+			int periodFrom,
+			int periodTo,
+			String trxName) {
+		return getConceptAvg(ctx,conceptValue,payrollId,partnerId,periodId ,periodFrom,periodTo,true,trxName);
+	}
+
+	/**
+	 *  Helper Method : Concept AVG by range from-to in periods from a different payroll
+	 *  periods with values 0 -1 1, etc. actual previous one period, next period
+	 *  0 corresponds to actual period
+	 * @param conceptValue
+	 * @param payrollId ID is the ID of the payroll.
+	 * @param partnerId business partner for search
+	 * @param periodId period ID
+	 * @param periodFrom
+	 * @param periodTo the search is done by the period value, it helps to search from previous years
+	 * @param processed
+	 * @param trxName
+	 */
+	public static double getConceptAvg(
+			Properties ctx,
+			String conceptValue,
+			int payrollId,
+			int partnerId,
+			int periodId,
+			int periodFrom,
+			int periodTo,
+			boolean includeInProcess,
+			String trxName) {
+		MHRConcept concept = MHRConcept.getByValue(ctx, conceptValue, trxName);
 		if (concept == null)
 			return 0.0;
 		//
@@ -439,7 +734,7 @@ public class MHRMovement extends X_HR_Movement
 			return 0; // TODO: throw exception?
 		}
 		//
-		MHRPeriod period = MHRPeriod.get(ctx, periodId);
+		MHRPeriod period = MHRPeriod.getById(ctx, periodId, trxName);
 		ArrayList<Object> params = new ArrayList<Object>();
 		StringBuffer whereClause = new StringBuffer();
 		//check concept
@@ -452,11 +747,11 @@ public class MHRMovement extends X_HR_Movement
 		//check process and payroll
 		whereClause.append(" AND EXISTS (SELECT 1 FROM HR_Process p"
 				+" INNER JOIN HR_Period pr ON (pr.HR_Period_id=p.HR_Period_ID)"
-				+" WHERE HR_Movement.HR_Process_ID = p.HR_Process_ID" 
-				+" AND p.DocStatus IN('CO', 'CL')"
+				+" WHERE HR_Movement.HR_Process_ID = p.HR_Process_ID"
+				+" AND " + (includeInProcess? "p.DocStatus IN('DR', 'IP', 'CO', 'CL')" : "p.DocStatus IN('CO', 'CL')")
 				+" AND p.HR_Payroll_ID=?");
 
-		params.add(payroll_id);
+		params.add(payrollId);
 		if (periodFrom < 0) {
 			whereClause.append(" AND pr.PeriodNo >= ?");
 			params.add(period.getPeriodNo() +periodFrom);
@@ -520,13 +815,18 @@ public class MHRMovement extends X_HR_Movement
 	{
 		this (importPayrollMovement.getCtx(), 0, importPayrollMovement.get_TrxName());
 		MHRConcept concept = new MHRConcept(getCtx(), importPayrollMovement.getHR_Concept_ID(), get_TrxName());
-		MHREmployee employee  = MHREmployee.getActiveEmployee(getCtx(), importPayrollMovement.getC_BPartner_ID(), get_TrxName());
+		MHREmployee employee = Optional.ofNullable(MHREmployee.getActiveEmployee(
+				getCtx(),
+				importPayrollMovement.getC_BPartner_ID(),
+				get_TrxName()))
+				.orElseThrow(() -> new AdempiereException("@HR_Employee_ID@ @NotFound@"));
 		setAD_Org_ID(employee.getAD_Org_ID());
 		setUpdatedBy(importPayrollMovement.getUpdatedBy());
 		setHR_Process_ID(importPayrollMovement.getHR_Process_ID());
 		setC_BPartner_ID(importPayrollMovement.getC_BPartner_ID());
 		setHR_Concept_ID(importPayrollMovement.getHR_Concept_ID());
 		setHR_Concept_Category_ID(concept.getHR_Concept_Category_ID());
+		setHR_Concept_Type_ID(concept.getHR_Concept_Type_ID());
 		setDescription(importPayrollMovement.getDescription());
 		setHR_Job_ID(employee.getHR_Job_ID());
 		setHR_Department_ID(employee.getHR_Department_ID());
@@ -558,6 +858,7 @@ public class MHRMovement extends X_HR_Movement
 		this.setHR_Payroll_ID(process.getHR_Payroll_ID());
 		// Concept
 		this.setHR_Concept_Category_ID(concept.getHR_Concept_Category_ID());
+		this.setHR_Concept_Type_ID(concept.getHR_Concept_Type_ID());
 		this.setHR_Concept_ID(concept.getHR_Concept_ID());
 	}
 	
@@ -578,7 +879,8 @@ public class MHRMovement extends X_HR_Movement
 	{
 		return getQty().signum() == 0
 				&& getAmount().signum() == 0
-				&& Util.isEmpty(getTextMsg());		
+				&& Util.isEmpty(getTextMsg())
+				&& getServiceDate() == null;		
 	}
 	
 	/**
@@ -586,50 +888,59 @@ public class MHRMovement extends X_HR_Movement
 	 * @param value
 	 */
 	public void setColumnValue(Object value) {
+		if(value == null) {
+			return;
+		}
 		try {
 			//	Get column Type from concept
-			MHRConcept concept = MHRConcept.get(getCtx(), getHR_Concept_ID());
+			MHRConcept concept = MHRConcept.getById(getCtx(), getHR_Concept_ID(), get_TrxName());
 			if(concept == null) {
 				throw new AdempiereException("@HR_Concept_ID@ @NotFound@");
 			}
 			//	
 			final String columnType = concept.getColumnType();
-			if (MHRConcept.COLUMNTYPE_Quantity.equals(columnType))
-			{
-				BigDecimal qty = new BigDecimal(value.toString()); 
-				setQty(qty);
-				setAmount(Env.ZERO);
-			} 
-			else if(MHRConcept.COLUMNTYPE_Amount.equals(columnType))
-			{
-					int precision = MCurrency.getStdPrecision(getCtx(), Env.getContextAsInt(p_ctx, "#C_Currency_ID"));				
-					BigDecimal amount = new BigDecimal(value.toString()).setScale(precision, BigDecimal.ROUND_HALF_UP);
-				setAmount(amount);
-				setQty(Env.ZERO);
-			} 
-			else if(MHRConcept.COLUMNTYPE_Text.equals(columnType))
-			{
+			int currencyPrecision = MCurrency.getStdPrecision(getCtx(), Env.getContextAsInt(p_ctx, "#C_Currency_ID"));
+			Optional<Integer> conceptStandardPrecisionOptional = Optional.ofNullable((Integer)concept.get_Value("StdPrecision"));
+			
+			if(MHRConcept.COLUMNTYPE_Text.equals(columnType)) {
 				setTextMsg(value.toString().trim());
-			}
-			else if(MHRConcept.COLUMNTYPE_Date.equals(columnType))
-			{
-				if (value instanceof Timestamp)
-				{
+			} else if(MHRConcept.COLUMNTYPE_Date.equals(columnType)) {
+				if (value instanceof Timestamp) {
 					setServiceDate((Timestamp)value);
-				}
-				else
-				{
+				} else {
 					setServiceDate(Timestamp.valueOf(value.toString().trim().substring(0, 10)+ " 00:00:00.0"));	
 				}
-			}
-			else
-			{
+			} else if (MHRConcept.COLUMNTYPE_Quantity.equals(columnType) || MHRConcept.COLUMNTYPE_Amount.equals(columnType)) {
+				double doubleValue = 0;
+				//	Validate Double
+				try {
+					doubleValue = Double.parseDouble(value.toString());
+				} catch (Exception e) {
+					String businessPartnerName = "";
+					if(getC_BPartner_ID() != 0) {
+						MBPartner businessPartner = (MBPartner) getC_BPartner();
+						businessPartnerName = businessPartner.getValue() + " - " + businessPartner.getName();
+					}
+					throw new AdempiereException(businessPartnerName + " [" + concept.getValue() + " @Error@ " + value + "]");
+				}
+				//	Set from type
+				if(MHRConcept.COLUMNTYPE_Amount.equals(columnType)) {
+					BigDecimal amount = new BigDecimal(doubleValue)
+							.setScale(conceptStandardPrecisionOptional.orElseGet(() -> currencyPrecision),BigDecimal.ROUND_HALF_UP);
+					setAmount(amount);
+					setQty(Env.ZERO);
+				} else {
+					BigDecimal qty = new BigDecimal(doubleValue);
+					setQty(qty);
+					setAmount(Env.ZERO);
+				}
+			} else {
 				throw new AdempiereException("@NotSupported@ @ColumnType@ - "+columnType);
 			}
 		}
 		catch (Exception e) 
 		{
-			throw new AdempiereException("@Script Error@");
+			throw new AdempiereException("@Script Error@ " + e.getLocalizedMessage());
 		}
 	}
 	
@@ -639,7 +950,68 @@ public class MHRMovement extends X_HR_Movement
 		MHREmployee employee  = MHREmployee.getActiveEmployee(Env.getCtx(), getC_BPartner_ID(), get_TrxName());
 		if (employee != null) {
 			setAD_Org_ID(employee.getAD_Org_ID());
-		}
+			int activityId = employee.getC_Activity_ID();
+			int user1Id = employee.getUser1_ID();
+			int user2Id = employee.getUser2_ID();
+			int user3Id = employee.getUser3_ID();
+			int user4Id = employee.getUser4_ID();
+			//	Get from Job
+			if(employee.getHR_Job_ID() > 0
+					&& (activityId <= 0 || user1Id <= 0 || user2Id <= 0 || user3Id <= 0 || user4Id <= 0)) {
+				MHRJob job = MHRJob.getById(getCtx(), employee.getHR_Job_ID(), get_TrxName());
+				if(activityId <= 0) {
+					activityId = job.getC_Activity_ID();
+				}
+				if(user1Id <= 0) {
+					user1Id = job.getUser1_ID();
+				}
+				if(user2Id <= 0) {
+					user2Id = job.getUser2_ID();
+				}
+				if(user3Id <= 0) {
+					user3Id = job.getUser3_ID();
+				}
+				if(user4Id <= 0) {
+					user4Id = job.getUser4_ID();
+				}
+			}
+			//	Get from Department
+			if(employee.getHR_Department_ID() > 0
+					&& (activityId <= 0 || user1Id <= 0 || user2Id <= 0 || user3Id <= 0 || user4Id <= 0)) {
+				MHRDepartment department = MHRDepartment.getById(getCtx(), employee.getHR_Department_ID(), get_TrxName());
+				if(activityId <= 0) {
+					activityId = department.getC_Activity_ID();
+				}
+				if(user1Id <= 0) {
+					user1Id = department.getUser1_ID();
+				}
+				if(user2Id <= 0) {
+					user2Id = department.getUser2_ID();
+				}
+				if(user3Id <= 0) {
+					user3Id = department.getUser3_ID();
+				}
+				if(user4Id <= 0) {
+					user4Id = department.getUser4_ID();
+				}
+			}
+			//	Set result
+			if(activityId > 0) {
+				setC_Activity_ID(activityId);
+			}
+			if(user1Id > 0) {
+				setUser1_ID(user1Id);
+			}
+			if(user2Id > 0) {
+				setUser2_ID(user2Id);
+			}
+			if(user3Id > 0) {
+				setUser3_ID(user3Id);
+			}
+			if(user4Id > 0) {
+				setUser4_ID(user4Id);
+			}
+		}		
 		return true;
 	}
 
@@ -657,6 +1029,7 @@ public class MHRMovement extends X_HR_Movement
 		setHR_EmployeeType_ID(employee.getHR_EmployeeType_ID());
 		setHR_SkillType_ID(employee.getHR_SkillType_ID());
 		setHR_Payroll_ID(employee.getHR_Payroll_ID());
+		setC_Project_ID(employee.getC_Project_ID());
 		if (employee.getHR_Payroll_ID() > 0)
 			setHR_Contract_ID(employee.getHR_Payroll().getHR_Contract_ID());
 	}

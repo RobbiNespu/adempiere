@@ -57,6 +57,8 @@ import org.zkoss.zul.Space;
  * 		@see FR [ 990 ] Sort Tab is not MVC</a>
  * 		<a href="https://github.com/adempiere/adempiere/issues/999">
  * 		@see FR [ 999 ] Add ZK Support for Process Action</a>
+ * @author Michael McKay, mckayERP@gmail.com
+ * 		<li><a href="https://github.com/adempiere/adempiere/issues/2373">#2373</a> Add copy record shortcut key Shift+F2
  */
 public class CWindowToolbar extends FToolbar implements EventListener
 {
@@ -91,6 +93,8 @@ public class CWindowToolbar extends FToolbar implements EventListener
     
     private ToolBarButton btnProcess;
     
+    private ToolBarButton btnQuickEntry;
+    
     private HashMap<String, ToolBarButton> buttons = new HashMap<String, ToolBarButton>();
 
 //    private ToolBarButton btnExit;
@@ -102,6 +106,7 @@ public class CWindowToolbar extends FToolbar implements EventListener
     private Map<Integer, ToolBarButton> keyMap = new HashMap<Integer, ToolBarButton>();
     private Map<Integer, ToolBarButton> altKeyMap = new HashMap<Integer, ToolBarButton>();
     private Map<Integer, ToolBarButton> ctrlKeyMap = new HashMap<Integer, ToolBarButton>();
+    private Map<Integer, ToolBarButton> shiftKeyMap = new HashMap<Integer, ToolBarButton>();
 
 	private boolean embedded;
 
@@ -215,6 +220,10 @@ public class CWindowToolbar extends FToolbar implements EventListener
         btnArchive.setDisabled(false); // Elaine 2008/07/28
         btnLock.setDisabled(!isPersonalLock); // Elaine 2008/12/04
 
+        btnQuickEntry = createButton("QuickEntry", "QuickEntry","QuickEntry");
+        btnQuickEntry.setVisible(true);
+        btnQuickEntry.setDisabled(false);
+        
         configureKeyMap();
 
         if (embedded)
@@ -305,6 +314,7 @@ public class CWindowToolbar extends FToolbar implements EventListener
 		keyMap.put(KeyEvent.F7, btnAttachment);
 		keyMap.put(KeyEvent.F8, btnGridToggle);
 		keyMap.put(KeyEvent.F9, btnHistoryRecords);
+		keyMap.put(KeyEvent.F10, btnQuickEntry);
 		keyMap.put(KeyEvent.F11, btnReport);
 		keyMap.put(KeyEvent.F12, btnPrint);
 
@@ -323,6 +333,8 @@ public class CWindowToolbar extends FToolbar implements EventListener
 		ctrlKeyMap.put(VK_S, btnSave);
 		ctrlKeyMap.put(VK_D, btnDelete);
 		ctrlKeyMap.put(VK_F, btnFind);
+		
+		shiftKeyMap.put(KeyEvent.F2, btnCopy);
 	}
 
 	protected void addSeparator()
@@ -568,6 +580,14 @@ public class CWindowToolbar extends FToolbar implements EventListener
     	btnArchive.setDisabled(!enabled);
     }
     
+    public void enableQuickEntry(boolean enabled)
+    {
+    	btnQuickEntry.setDisabled(!enabled);
+    }
+    public void enableHelp(boolean enabled)
+    {
+        this.btnHelp.setDisabled(!enabled);
+    }
     public void lock(boolean locked)
     {
     	this.btnLock.setPressed(locked);
@@ -583,6 +603,7 @@ public class CWindowToolbar extends FToolbar implements EventListener
 
 	private void onCtrlKeyEvent(KeyEvent keyEvent) {
 		ToolBarButton btn = null;
+		// <Alt>
 		if (keyEvent.isAltKey() && !keyEvent.isCtrlKey() && !keyEvent.isShiftKey())
 		{
 			if (keyEvent.getKeyCode() == VK_X)
@@ -600,19 +621,28 @@ public class CWindowToolbar extends FToolbar implements EventListener
 				btn = altKeyMap.get(keyEvent.getKeyCode());
 			}
 		}
+		// <Ctrl>
 		else if (!keyEvent.isAltKey() && keyEvent.isCtrlKey() && !keyEvent.isShiftKey())
+		{
 			btn = ctrlKeyMap.get(keyEvent.getKeyCode());
-		else if (!keyEvent.isAltKey() && !keyEvent.isCtrlKey() && !keyEvent.isShiftKey())
-			btn = keyMap.get(keyEvent.getKeyCode());
-
-		if (btn != null) {
-			prevKeyEventTime = System.currentTimeMillis();
-        	prevKeyEvent = keyEvent;
-			keyEvent.stopPropagation();
-			if (!btn.isDisabled() && btn.isVisible()) {
-				Events.sendEvent(btn, new Event(Events.ON_CLICK, btn));
-			}
 		}
+		// <Shift>
+		else if (!keyEvent.isAltKey() && !keyEvent.isCtrlKey() && keyEvent.isShiftKey())
+		{
+			btn = shiftKeyMap.get(keyEvent.getKeyCode());
+		}
+		// Normal eg <F2>
+		else if (!keyEvent.isAltKey() && !keyEvent.isCtrlKey() && !keyEvent.isShiftKey())
+		{
+			btn = keyMap.get(keyEvent.getKeyCode());
+		}
+//		else if (!keyEvent.isAltKey() && keyEvent.isCtrlKey() && !keyEvent.isShiftKey())
+//			btn = ctrlKeyMap.get(keyEvent.getKeyCode());
+//		else if (!keyEvent.isAltKey() && !keyEvent.isCtrlKey() && !keyEvent.isShiftKey())
+//			btn = keyMap.get(keyEvent.getKeyCode());
+
+
+		sendButtonClickEvent(keyEvent, btn);
 	}
 
 	private boolean isRealVisible() {
@@ -626,7 +656,24 @@ public class CWindowToolbar extends FToolbar implements EventListener
 		}
 		return true;
 	}
-
+	/**
+	 * @param keyEvent
+	 * @param btn
+	 */
+	public void sendButtonClickEvent(KeyEvent keyEvent, ToolBarButton btn)
+	{
+		if (btn != null)
+		{
+			prevKeyEventTime = System.currentTimeMillis();
+			prevKeyEvent = keyEvent;
+			keyEvent.stopPropagation();
+			if (!btn.isDisabled() && btn.isVisible())
+			{
+				Events.sendEvent(btn, new Event(Events.ON_CLICK, btn));
+			}
+		}
+	}
+	 
 	/**
 	 *
 	 * @param visible

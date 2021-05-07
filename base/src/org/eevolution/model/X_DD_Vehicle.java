@@ -26,14 +26,14 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Model for DD_Vehicle
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0 - $Id$ */
+ *  @version Release 3.9.2 - $Id$ */
 public class X_DD_Vehicle extends PO implements I_DD_Vehicle, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170731L;
+	private static final long serialVersionUID = 20191120L;
 
     /** Standard Constructor */
     public X_DD_Vehicle (Properties ctx, int DD_Vehicle_ID, String trxName)
@@ -107,9 +107,9 @@ public class X_DD_Vehicle extends PO implements I_DD_Vehicle, I_Persistent
 		return (org.compiere.model.I_A_Asset)MTable.get(getCtx(), org.compiere.model.I_A_Asset.Table_Name)
 			.getPO(getA_Asset_ID(), get_TrxName());	}
 
-	/** Set Asset.
+	/** Set Fixed Asset.
 		@param A_Asset_ID 
-		Asset used internally or by customers
+		Fixed Asset used internally or by customers
 	  */
 	public void setA_Asset_ID (int A_Asset_ID)
 	{
@@ -119,8 +119,8 @@ public class X_DD_Vehicle extends PO implements I_DD_Vehicle, I_Persistent
 			set_Value (COLUMNNAME_A_Asset_ID, Integer.valueOf(A_Asset_ID));
 	}
 
-	/** Get Asset.
-		@return Asset used internally or by customers
+	/** Get Fixed Asset.
+		@return Fixed Asset used internally or by customers
 	  */
 	public int getA_Asset_ID () 
 	{
@@ -264,6 +264,31 @@ public class X_DD_Vehicle extends PO implements I_DD_Vehicle, I_Persistent
 	public int getDD_RequirementAssignment_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_DD_RequirementAssignment_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.spin.model.I_DD_VehicleGroup getDD_VehicleGroup() throws RuntimeException
+    {
+		return (org.spin.model.I_DD_VehicleGroup)MTable.get(getCtx(), org.spin.model.I_DD_VehicleGroup.Table_Name)
+			.getPO(getDD_VehicleGroup_ID(), get_TrxName());	}
+
+	/** Set Vehicle Group.
+		@param DD_VehicleGroup_ID Vehicle Group	  */
+	public void setDD_VehicleGroup_ID (int DD_VehicleGroup_ID)
+	{
+		if (DD_VehicleGroup_ID < 1) 
+			set_Value (COLUMNNAME_DD_VehicleGroup_ID, null);
+		else 
+			set_Value (COLUMNNAME_DD_VehicleGroup_ID, Integer.valueOf(DD_VehicleGroup_ID));
+	}
+
+	/** Get Vehicle Group.
+		@return Vehicle Group	  */
+	public int getDD_VehicleGroup_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_DD_VehicleGroup_ID);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();

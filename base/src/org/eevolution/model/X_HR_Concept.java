@@ -25,14 +25,14 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Model for HR_Concept
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0 - $Id$ */
+ *  @version Release 3.9.2 - $Id$ */
 public class X_HR_Concept extends PO implements I_HR_Concept, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170731L;
+	private static final long serialVersionUID = 20191120L;
 
     /** Standard Constructor */
     public X_HR_Concept (Properties ctx, int HR_Concept_ID, String trxName)
@@ -325,6 +325,23 @@ public class X_HR_Concept extends PO implements I_HR_Concept, I_Persistent
 		return ii.intValue();
 	}
 
+	/** Set Comment/Help.
+		@param Help 
+		Comment or Hint
+	  */
+	public void setHelp (String Help)
+	{
+		set_Value (COLUMNNAME_Help, Help);
+	}
+
+	/** Get Comment/Help.
+		@return Comment or Hint
+	  */
+	public String getHelp () 
+	{
+		return (String)get_Value(COLUMNNAME_Help);
+	}
+
 	/** Set Default.
 		@param IsDefault 
 		Default value
@@ -615,6 +632,26 @@ public class X_HR_Concept extends PO implements I_HR_Concept, I_Persistent
 	public int getSeqNo () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_SeqNo);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** Set Standard Precision.
+		@param StdPrecision 
+		Rule for rounding  calculated amounts
+	  */
+	public void setStdPrecision (int StdPrecision)
+	{
+		set_Value (COLUMNNAME_StdPrecision, Integer.valueOf(StdPrecision));
+	}
+
+	/** Get Standard Precision.
+		@return Rule for rounding  calculated amounts
+	  */
+	public int getStdPrecision () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_StdPrecision);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();

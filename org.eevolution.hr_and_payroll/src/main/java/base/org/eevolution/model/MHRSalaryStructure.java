@@ -35,16 +35,21 @@ import java.util.stream.Collectors;
  */
 public class MHRSalaryStructure extends X_HR_SalaryStructure {
 
-    private static CCache<Integer, MHRSalaryStructure> salaryStructureCacheIds = new CCache<Integer, MHRSalaryStructure>(Table_Name, 50, 0);
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -8908364340305802L;
+	private static CCache<Integer, MHRSalaryStructure> salaryStructureCacheIds = new CCache<Integer, MHRSalaryStructure>(Table_Name, 50, 0);
     private static CCache<String, MHRSalaryStructure> salaryStructureCacheValues = new CCache<String, MHRSalaryStructure>(Table_Name, 50, 0);
 
     /**
      * Get Salary Structure by Id
      * @param ctx
      * @param salaryStructureId
+     * @param trxName
      * @return
      */
-    public static MHRSalaryStructure getById(Properties ctx, int salaryStructureId) {
+    public static MHRSalaryStructure getById(Properties ctx, int salaryStructureId, String trxName) {
         if (salaryStructureId <= 0)
             return null;
 
@@ -55,7 +60,7 @@ public class MHRSalaryStructure extends X_HR_SalaryStructure {
         if (salaryStructure != null && salaryStructure.get_ID() > 0)
             return salaryStructure;
 
-        salaryStructure = new Query(ctx , Table_Name , MHRSalaryStructure.COLUMNNAME_HR_SalaryStructure_ID + "=?", null)
+        salaryStructure = new Query(ctx , Table_Name , MHRSalaryStructure.COLUMNNAME_HR_SalaryStructure_ID + "=?", trxName)
                 .setClient_ID()
                 .setParameters(salaryStructureId)
                 .first();

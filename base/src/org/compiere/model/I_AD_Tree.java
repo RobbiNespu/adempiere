@@ -22,7 +22,7 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Interface for AD_Tree
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0
+ *  @version Release 3.9.2
  */
 public interface I_AD_Tree 
 {
@@ -49,6 +49,21 @@ public interface I_AD_Tree
 	  */
 	public int getAD_Client_ID();
 
+    /** Column name AD_ColumnSortOrder_ID */
+    public static final String COLUMNNAME_AD_ColumnSortOrder_ID = "AD_ColumnSortOrder_ID";
+
+	/** Set Order Column.
+	  * Column determining the order
+	  */
+	public void setAD_ColumnSortOrder_ID (int AD_ColumnSortOrder_ID);
+
+	/** Get Order Column.
+	  * Column determining the order
+	  */
+	public int getAD_ColumnSortOrder_ID();
+
+	public org.compiere.model.I_AD_Column getAD_ColumnSortOrder() throws RuntimeException;
+
     /** Column name AD_Org_ID */
     public static final String COLUMNNAME_AD_Org_ID = "AD_Org_ID";
 
@@ -61,6 +76,21 @@ public interface I_AD_Tree
 	  * Organizational entity within client
 	  */
 	public int getAD_Org_ID();
+
+    /** Column name AD_Table_ID */
+    public static final String COLUMNNAME_AD_Table_ID = "AD_Table_ID";
+
+	/** Set Table.
+	  * Database Table information
+	  */
+	public void setAD_Table_ID (int AD_Table_ID);
+
+	/** Get Table.
+	  * Database Table information
+	  */
+	public int getAD_Table_ID();
+
+	public org.compiere.model.I_AD_Table getAD_Table() throws RuntimeException;
 
     /** Column name AD_Tree_ID */
     public static final String COLUMNNAME_AD_Tree_ID = "AD_Tree_ID";
@@ -155,6 +185,21 @@ public interface I_AD_Tree
 	  * Alphanumeric identifier of the entity
 	  */
 	public String getName();
+
+    /** Column name Parent_Column_ID */
+    public static final String COLUMNNAME_Parent_Column_ID = "Parent_Column_ID";
+
+	/** Set Parent Column.
+	  * The link column on the parent tab.
+	  */
+	public void setParent_Column_ID (int Parent_Column_ID);
+
+	/** Get Parent Column.
+	  * The link column on the parent tab.
+	  */
+	public int getParent_Column_ID();
+
+	public org.compiere.model.I_AD_Column getParent_Column() throws RuntimeException;
 
     /** Column name Processing */
     public static final String COLUMNNAME_Processing = "Processing";

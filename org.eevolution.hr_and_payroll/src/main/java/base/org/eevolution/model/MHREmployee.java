@@ -114,16 +114,46 @@ public class MHREmployee extends X_HR_Employee
 	{
 		List<Object> params = new ArrayList<Object>();
 		StringBuffer whereClause = new StringBuffer();
-		whereClause.append(" C_BPartner.C_BPartner_ID IN (SELECT e.C_BPartner_ID FROM HR_Employee e WHERE 1=1 ");
+		whereClause.append("EXISTS(SELECT 1 FROM HR_Employee e " + 
+				"WHERE e.C_BPartner_ID = C_BPartner.C_BPartner_ID " +
+				"AND (e.EmployeeStatus = ? OR EmployeeStatus IS NULL) ");
+		//	For Active
+		params.add(MHREmployee.EMPLOYEESTATUS_Active);
 		//	look if it is a not regular payroll
-		MHRPayroll payroll = MHRPayroll.getById(process.getCtx(), process.getHR_Payroll_ID());
+		MHRPayroll payroll = MHRPayroll.getById(process.getCtx(), process.getHR_Payroll_ID(), process.get_TrxName());
 		// This payroll not content periods, NOT IS a Regular Payroll > ogi-cd 28Nov2007
 		if(process.getHR_Payroll_ID() != 0 && process.getHR_Period_ID() != 0 && !payroll.isIgnoreDefaultPayroll())
 		{
 			whereClause.append(" AND (e.HR_Payroll_ID IS NULL OR e.HR_Payroll_ID=?) " );
 			params.add(process.getHR_Payroll_ID());
 		}
-		
+		//	Organization
+		if(process.getAD_OrgTrx_ID() != 0) {
+			whereClause.append(" AND e.AD_OrgTrx_ID=? " );
+			params.add(process.getAD_OrgTrx_ID());
+		}
+		//	Project
+		if(process.getC_Project_ID() != 0) {
+			whereClause.append(" AND e.C_Project_ID=? " );
+			params.add(process.getC_Project_ID());
+		}
+		//	Activity
+		if(process.getC_Activity_ID() != 0) {
+			whereClause.append(" AND e.C_Activity_ID=? " );
+			params.add(process.getC_Activity_ID());
+		}
+		//	Campaign
+		if(process.getC_Campaign_ID() != 0) {
+			whereClause.append(" AND e.C_Campaign_ID=? " );
+			params.add(process.getC_Campaign_ID());
+		}
+		//	Sales Region
+		if(process.getC_SalesRegion_ID() != 0) {
+			whereClause.append(" AND e.C_SalesRegion_ID=? " );
+			params.add(process.getC_SalesRegion_ID());
+		}
+		//	Active Record
+		whereClause.append(" AND e.IsActive = 'Y' " );
 		// HR Period
 		if(process.getHR_Period_ID() == 0)
 		{
@@ -174,12 +204,15 @@ public class MHREmployee extends X_HR_Employee
 		return list.toArray(new MBPartner[list.size()]);
 	}	//	getEmployees
 	
-	public static MHREmployee getActiveEmployee(Properties ctx, int C_BPartner_ID, String trxName)
-	{
-		return new Query(ctx, Table_Name, COLUMNNAME_C_BPartner_ID+"=?", trxName)
+	public static MHREmployee getActiveEmployee(Properties ctx, int partnerId, String trxName) {
+		
+		List<Object> params = new ArrayList<Object>();
+		params.add(partnerId);
+		params.add(MHREmployee.EMPLOYEESTATUS_Active);
+		return new Query(ctx, Table_Name, COLUMNNAME_C_BPartner_ID+"=? AND (EmployeeStatus = ? OR EmployeeStatus IS NULL)", trxName)
 							.setOnlyActiveRecords(true)
-							.setParameters(new Object[]{C_BPartner_ID})
-							.setOrderBy(COLUMNNAME_HR_Employee_ID+" DESC") // just in case...
+							.setParameters(params)
+							.setOrderBy(COLUMNNAME_StartDate+" DESC") // just in case...
 							.first();
 	}
 

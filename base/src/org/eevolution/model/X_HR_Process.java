@@ -26,14 +26,14 @@ import org.compiere.util.Env;
 
 /** Generated Model for HR_Process
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0 - $Id$ */
+ *  @version Release 3.9.3 - $Id$ */
 public class X_HR_Process extends PO implements I_HR_Process, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170731L;
+	private static final long serialVersionUID = 20200417L;
 
     /** Standard Constructor */
     public X_HR_Process (Properties ctx, int HR_Process_ID, String trxName)
@@ -83,6 +83,34 @@ public class X_HR_Process extends PO implements I_HR_Process, I_Persistent
       return sb.toString();
     }
 
+	public org.compiere.model.I_AD_Org getAD_OrgTrx() throws RuntimeException
+    {
+		return (org.compiere.model.I_AD_Org)MTable.get(getCtx(), org.compiere.model.I_AD_Org.Table_Name)
+			.getPO(getAD_OrgTrx_ID(), get_TrxName());	}
+
+	/** Set Trx Organization.
+		@param AD_OrgTrx_ID 
+		Performing or initiating organization
+	  */
+	public void setAD_OrgTrx_ID (int AD_OrgTrx_ID)
+	{
+		if (AD_OrgTrx_ID < 1) 
+			set_Value (COLUMNNAME_AD_OrgTrx_ID, null);
+		else 
+			set_Value (COLUMNNAME_AD_OrgTrx_ID, Integer.valueOf(AD_OrgTrx_ID));
+	}
+
+	/** Get Trx Organization.
+		@return Performing or initiating organization
+	  */
+	public int getAD_OrgTrx_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_AD_OrgTrx_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
 	public org.compiere.model.I_AD_Workflow getAD_Workflow() throws RuntimeException
     {
 		return (org.compiere.model.I_AD_Workflow)MTable.get(getCtx(), org.compiere.model.I_AD_Workflow.Table_Name)
@@ -106,6 +134,34 @@ public class X_HR_Process extends PO implements I_HR_Process, I_Persistent
 	public int getAD_Workflow_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_AD_Workflow_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.compiere.model.I_C_Activity getC_Activity() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_Activity)MTable.get(getCtx(), org.compiere.model.I_C_Activity.Table_Name)
+			.getPO(getC_Activity_ID(), get_TrxName());	}
+
+	/** Set Activity.
+		@param C_Activity_ID 
+		Business Activity
+	  */
+	public void setC_Activity_ID (int C_Activity_ID)
+	{
+		if (C_Activity_ID < 1) 
+			set_Value (COLUMNNAME_C_Activity_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_Activity_ID, Integer.valueOf(C_Activity_ID));
+	}
+
+	/** Get Activity.
+		@return Business Activity
+	  */
+	public int getC_Activity_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_Activity_ID);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
@@ -139,29 +195,85 @@ public class X_HR_Process extends PO implements I_HR_Process, I_Persistent
 		return ii.intValue();
 	}
 
-	public org.compiere.model.I_C_DocType getC_DocTypeTarget() throws RuntimeException
+	public org.compiere.model.I_C_Campaign getC_Campaign() throws RuntimeException
     {
-		return (org.compiere.model.I_C_DocType)MTable.get(getCtx(), org.compiere.model.I_C_DocType.Table_Name)
-			.getPO(getC_DocTypeTarget_ID(), get_TrxName());	}
+		return (org.compiere.model.I_C_Campaign)MTable.get(getCtx(), org.compiere.model.I_C_Campaign.Table_Name)
+			.getPO(getC_Campaign_ID(), get_TrxName());	}
 
-	/** Set Target Document Type.
-		@param C_DocTypeTarget_ID 
-		Target document type for conversing documents
+	/** Set Campaign.
+		@param C_Campaign_ID 
+		Marketing Campaign
 	  */
-	public void setC_DocTypeTarget_ID (int C_DocTypeTarget_ID)
+	public void setC_Campaign_ID (int C_Campaign_ID)
 	{
-		if (C_DocTypeTarget_ID < 1) 
-			set_Value (COLUMNNAME_C_DocTypeTarget_ID, null);
+		if (C_Campaign_ID < 1) 
+			set_Value (COLUMNNAME_C_Campaign_ID, null);
 		else 
-			set_Value (COLUMNNAME_C_DocTypeTarget_ID, Integer.valueOf(C_DocTypeTarget_ID));
+			set_Value (COLUMNNAME_C_Campaign_ID, Integer.valueOf(C_Campaign_ID));
 	}
 
-	/** Get Target Document Type.
-		@return Target document type for conversing documents
+	/** Get Campaign.
+		@return Marketing Campaign
 	  */
-	public int getC_DocTypeTarget_ID () 
+	public int getC_Campaign_ID () 
 	{
-		Integer ii = (Integer)get_Value(COLUMNNAME_C_DocTypeTarget_ID);
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_Campaign_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.compiere.model.I_C_ConversionType getC_ConversionType() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_ConversionType)MTable.get(getCtx(), org.compiere.model.I_C_ConversionType.Table_Name)
+			.getPO(getC_ConversionType_ID(), get_TrxName());	}
+
+	/** Set Currency Type.
+		@param C_ConversionType_ID 
+		Currency Conversion Rate Type
+	  */
+	public void setC_ConversionType_ID (int C_ConversionType_ID)
+	{
+		if (C_ConversionType_ID < 1) 
+			set_Value (COLUMNNAME_C_ConversionType_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_ConversionType_ID, Integer.valueOf(C_ConversionType_ID));
+	}
+
+	/** Get Currency Type.
+		@return Currency Conversion Rate Type
+	  */
+	public int getC_ConversionType_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_ConversionType_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.compiere.model.I_C_Currency getC_Currency() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_Currency)MTable.get(getCtx(), org.compiere.model.I_C_Currency.Table_Name)
+			.getPO(getC_Currency_ID(), get_TrxName());	}
+
+	/** Set Currency.
+		@param C_Currency_ID 
+		The Currency for this record
+	  */
+	public void setC_Currency_ID (int C_Currency_ID)
+	{
+		if (C_Currency_ID < 1) 
+			set_Value (COLUMNNAME_C_Currency_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_Currency_ID, Integer.valueOf(C_Currency_ID));
+	}
+
+	/** Get Currency.
+		@return The Currency for this record
+	  */
+	public int getC_Currency_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_Currency_ID);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
@@ -195,13 +307,97 @@ public class X_HR_Process extends PO implements I_HR_Process, I_Persistent
 		return ii.intValue();
 	}
 
+	public org.compiere.model.I_C_DocType getC_DocTypeTarget() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_DocType)MTable.get(getCtx(), org.compiere.model.I_C_DocType.Table_Name)
+			.getPO(getC_DocTypeTarget_ID(), get_TrxName());	}
+
+	/** Set Target Document Type.
+		@param C_DocTypeTarget_ID 
+		Target document type for conversing documents
+	  */
+	public void setC_DocTypeTarget_ID (int C_DocTypeTarget_ID)
+	{
+		if (C_DocTypeTarget_ID < 1) 
+			set_Value (COLUMNNAME_C_DocTypeTarget_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_DocTypeTarget_ID, Integer.valueOf(C_DocTypeTarget_ID));
+	}
+
+	/** Get Target Document Type.
+		@return Target document type for conversing documents
+	  */
+	public int getC_DocTypeTarget_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_DocTypeTarget_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.compiere.model.I_C_Project getC_Project() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_Project)MTable.get(getCtx(), org.compiere.model.I_C_Project.Table_Name)
+			.getPO(getC_Project_ID(), get_TrxName());	}
+
+	/** Set Project.
+		@param C_Project_ID 
+		Financial Project
+	  */
+	public void setC_Project_ID (int C_Project_ID)
+	{
+		if (C_Project_ID < 1) 
+			set_Value (COLUMNNAME_C_Project_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_Project_ID, Integer.valueOf(C_Project_ID));
+	}
+
+	/** Get Project.
+		@return Financial Project
+	  */
+	public int getC_Project_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_Project_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.compiere.model.I_C_SalesRegion getC_SalesRegion() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_SalesRegion)MTable.get(getCtx(), org.compiere.model.I_C_SalesRegion.Table_Name)
+			.getPO(getC_SalesRegion_ID(), get_TrxName());	}
+
+	/** Set Sales Region.
+		@param C_SalesRegion_ID 
+		Sales coverage region
+	  */
+	public void setC_SalesRegion_ID (int C_SalesRegion_ID)
+	{
+		if (C_SalesRegion_ID < 1) 
+			set_Value (COLUMNNAME_C_SalesRegion_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_SalesRegion_ID, Integer.valueOf(C_SalesRegion_ID));
+	}
+
+	/** Get Sales Region.
+		@return Sales coverage region
+	  */
+	public int getC_SalesRegion_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_SalesRegion_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
 	/** Set Account Date.
 		@param DateAcct 
 		Accounting Date
 	  */
 	public void setDateAcct (Timestamp DateAcct)
 	{
-		set_ValueNoCheck (COLUMNNAME_DateAcct, DateAcct);
+		set_Value (COLUMNNAME_DateAcct, DateAcct);
 	}
 
 	/** Get Account Date.
@@ -406,9 +602,9 @@ public class X_HR_Process extends PO implements I_HR_Process, I_Persistent
 	public void setHR_Payroll_ID (int HR_Payroll_ID)
 	{
 		if (HR_Payroll_ID < 1) 
-			set_ValueNoCheck (COLUMNNAME_HR_Payroll_ID, null);
+			set_Value (COLUMNNAME_HR_Payroll_ID, null);
 		else 
-			set_ValueNoCheck (COLUMNNAME_HR_Payroll_ID, Integer.valueOf(HR_Payroll_ID));
+			set_Value (COLUMNNAME_HR_Payroll_ID, Integer.valueOf(HR_Payroll_ID));
 	}
 
 	/** Get Payroll.
@@ -431,9 +627,9 @@ public class X_HR_Process extends PO implements I_HR_Process, I_Persistent
 	public void setHR_Period_ID (int HR_Period_ID)
 	{
 		if (HR_Period_ID < 1) 
-			set_ValueNoCheck (COLUMNNAME_HR_Period_ID, null);
+			set_Value (COLUMNNAME_HR_Period_ID, null);
 		else 
-			set_ValueNoCheck (COLUMNNAME_HR_Period_ID, Integer.valueOf(HR_Period_ID));
+			set_Value (COLUMNNAME_HR_Period_ID, Integer.valueOf(HR_Period_ID));
 	}
 
 	/** Get Payroll Period.

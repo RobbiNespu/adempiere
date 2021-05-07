@@ -23,7 +23,7 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Interface for DD_Vehicle
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0
+ *  @version Release 3.9.2
  */
 public interface I_DD_Vehicle 
 {
@@ -79,13 +79,13 @@ public interface I_DD_Vehicle
     /** Column name A_Asset_ID */
     public static final String COLUMNNAME_A_Asset_ID = "A_Asset_ID";
 
-	/** Set Asset.
-	  * Asset used internally or by customers
+	/** Set Fixed Asset.
+	  * Fixed Asset used internally or by customers
 	  */
 	public void setA_Asset_ID (int A_Asset_ID);
 
-	/** Get Asset.
-	  * Asset used internally or by customers
+	/** Get Fixed Asset.
+	  * Fixed Asset used internally or by customers
 	  */
 	public int getA_Asset_ID();
 
@@ -185,6 +185,17 @@ public interface I_DD_Vehicle
 	public int getDD_RequirementAssignment_ID();
 
 	public org.eevolution.model.I_DD_RequirementAssignment getDD_RequirementAssignment() throws RuntimeException;
+
+    /** Column name DD_VehicleGroup_ID */
+    public static final String COLUMNNAME_DD_VehicleGroup_ID = "DD_VehicleGroup_ID";
+
+	/** Set Vehicle Group	  */
+	public void setDD_VehicleGroup_ID (int DD_VehicleGroup_ID);
+
+	/** Get Vehicle Group	  */
+	public int getDD_VehicleGroup_ID();
+
+	public org.spin.model.I_DD_VehicleGroup getDD_VehicleGroup() throws RuntimeException;
 
     /** Column name DD_VehicleType_ID */
     public static final String COLUMNNAME_DD_VehicleType_ID = "DD_VehicleType_ID";

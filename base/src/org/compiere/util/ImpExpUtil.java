@@ -17,6 +17,7 @@ import org.adempiere.util.DateUtil;
 import org.compiere.model.X_AD_Package_Exp_Detail;
 import org.compiere.print.MPrintFormat;
 import org.compiere.print.ReportEngine;
+import org.spin.util.XMLUtils;
 import org.xml.sax.helpers.AttributesImpl;
 
 
@@ -40,7 +41,9 @@ public class ImpExpUtil {
 			FileOutputStream fos = new FileOutputStream(file);
 			StreamResult streamResult_document = new StreamResult(new OutputStreamWriter(fos,"ISO-8859-1"));
 		    PrintFormatElementHandler printFormatHandler = new PrintFormatElementHandler();
-			SAXTransformerFactory tf_menu = (SAXTransformerFactory) SAXTransformerFactory.newInstance();					 
+			SAXTransformerFactory tf_menu = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
+			//	Default features
+			XMLUtils.setDefaultFeatures(tf_menu);
 			tf_menu.setAttribute("indent-number", new Integer(4));
 			TransformerHandler packOutDocument = tf_menu.newTransformerHandler();		
 			Transformer serializer_document = packOutDocument.getTransformer();		
@@ -81,16 +84,16 @@ public class ImpExpUtil {
 	{
 		
 		
-		PackIn.m_UpdateMode = "false";
-		PackIn.m_Package_Dir = arxml.getParentFile().getAbsolutePath();
+		PackIn.updateMode = false;
+		PackIn.packageDirectory = arxml.getParentFile().getAbsolutePath();
 		
-		File doc = new File(PackIn.m_Package_Dir + File.separator + "doc");
+		File doc = new File(PackIn.packageDirectory + File.separator + "doc");
 		doc.mkdir();
 		
 		if (DB.isOracle())
-			PackIn.m_Database = "Oracle";
+			PackIn.database = "Oracle";
 		else if (DB.isPostgreSQL())
-			PackIn.m_Database = "PostgreSQL";
+			PackIn.database = "PostgreSQL";
 
 		// call XML Handler
 		String trxName = Trx.createTrxName();

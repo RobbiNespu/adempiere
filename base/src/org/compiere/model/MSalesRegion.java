@@ -22,6 +22,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import org.compiere.util.CCache;
+import org.compiere.util.DB;
 import org.compiere.util.Env;
 
 
@@ -30,6 +31,9 @@ import org.compiere.util.Env;
  *	
  *  @author Jorg Janke
  *  @version $Id: MSalesRegion.java,v 1.3 2006/07/30 00:54:54 jjanke Exp $
+ *  @author Yamel Senih, ysenih@erpcya.com, ERPCyA http://www.erpcya.com 2015-09-09
+ *  	<li>FR [ 9223372036854775807 ] Add Support to Dynamic Tree
+ *  @see https://adempiere.atlassian.net/browse/ADEMPIERE-442
  */
 public class MSalesRegion extends X_C_SalesRegion
 {
@@ -47,8 +51,9 @@ public class MSalesRegion extends X_C_SalesRegion
 	 */
 	@Deprecated
 	public static MSalesRegion get (Properties ctx, int salesRegionId) {
-		return getById(ctx, salesRegionId);
+		return getById(ctx, salesRegionId, null);
 	}	//	get
+
 
 	/** Static Cache */
 	private static CCache<Integer, MSalesRegion> salesRegionCacheIds = new CCache<Integer, MSalesRegion>(Table_Name, 30);
@@ -59,9 +64,10 @@ public class MSalesRegion extends X_C_SalesRegion
 	 * Get/Load Campaign [CACHED]
 	 * @param ctx context
 	 * @param salesRegionId
+	 * @param trxName
 	 * @return activity or null
 	 */
-	public static MSalesRegion getById(Properties ctx, int salesRegionId) {
+	public static MSalesRegion getById(Properties ctx, int salesRegionId, String trxName) {
 		if (salesRegionId <= 0)
 			return null;
 
@@ -69,7 +75,7 @@ public class MSalesRegion extends X_C_SalesRegion
 		if (salesRegion != null && salesRegion.get_ID() > 0)
 			return salesRegion;
 
-		salesRegion = new Query(ctx , Table_Name , COLUMNNAME_C_SalesRegion_ID + "=?" , null)
+		salesRegion = new Query(ctx , Table_Name , COLUMNNAME_C_SalesRegion_ID + "=?" , trxName)
 				.setClient_ID()
 				.setParameters(salesRegionId)
 				.first();
@@ -87,13 +93,14 @@ public class MSalesRegion extends X_C_SalesRegion
 	 * get Activity By Value [CACHED]
 	 * @param ctx
 	 * @param salesRegionValue
+	 * @param trxName
 	 * @return
 	 */
-	public static MSalesRegion getByValue(Properties ctx , String salesRegionValue) {
+	public static MSalesRegion getByValue(Properties ctx, String salesRegionValue, String trxName) {
 		if (salesRegionValue == null)
 			return null;
 		if (salesRegionCacheValues.size() == 0 )
-			getAll(ctx, true);
+			getAll(ctx, true, trxName);
 
 		int clientId = Env.getAD_Client_ID(ctx);
 		String key = clientId + "#" + salesRegionValue;
@@ -101,7 +108,7 @@ public class MSalesRegion extends X_C_SalesRegion
 		if (salesRegion != null && salesRegion.get_ID() > 0 )
 			return salesRegion;
 
-		salesRegion =  new Query(ctx, Table_Name , COLUMNNAME_Value +  "=?", null)
+		salesRegion =  new Query(ctx, Table_Name , COLUMNNAME_Value +  "=?", trxName)
 				.setClient_ID()
 				.setParameters(salesRegionValue)
 				.first();
@@ -117,12 +124,13 @@ public class MSalesRegion extends X_C_SalesRegion
 	 * Get All Campaign
 	 * @param ctx
 	 * @param resetCache
+	 * @param trxName
 	 * @return
 	 */
-	public static List<MSalesRegion> getAll(Properties ctx, boolean resetCache) {
+	public static List<MSalesRegion> getAll(Properties ctx, boolean resetCache, String trxName) {
 		List<MSalesRegion> salesRegionList;
 		if (resetCache || salesRegionCacheIds.size() > 0 ) {
-			salesRegionList = new Query(Env.getCtx(), Table_Name, null , null)
+			salesRegionList = new Query(Env.getCtx(), Table_Name, null , trxName)
 					.setClient_ID()
 					.setOrderBy(COLUMNNAME_Name)
 					.list();
@@ -187,25 +195,39 @@ public class MSalesRegion extends X_C_SalesRegion
 	{
 		if (!success)
 			return success;
-		if (newRecord)
-			insert_Tree(MTree_Base.TREETYPE_SalesRegion);
 		//	Value/Name change
 		if (!newRecord && (is_ValueChanged("Value") || is_ValueChanged("Name")))
 			MAccount.updateValueDescription(getCtx(), "C_SalesRegion_ID=" + getC_SalesRegion_ID(), get_TrxName());
-
+		//	Set sales representative
+		setSalesRep(this);
 		return true;
 	}	//	afterSave
-
+	
 	/**
-	 * 	After Delete
-	 *	@param success
-	 *	@return deleted
+	 * Set sales representative for all child of sales region
+	 * @param parent
 	 */
-	protected boolean afterDelete (boolean success)
-	{
-		if (success)
-			delete_Tree(MTree_Base.TREETYPE_SalesRegion);
-		return success;
-	}	//	afterDelete
+	private void setSalesRep(MSalesRegion parent) {
+		if(!parent.isSummary()) {
+			return;
+		}
+		int treeId = MTree.getDefaultTreeIdFromTableId(getAD_Client_ID(), get_Table_ID());
+		final String sql = "SELECT tn.Node_ID AS C_SalesRegion_ID " +
+				"FROM AD_Tree t " +
+				"INNER JOIN AD_TreeNode tn ON t.AD_Tree_ID = tn.AD_Tree_ID " +
+				"WHERE t.AD_Tree_ID=? " +
+				"AND tn.Parent_ID =?";
+		int [] ids = DB.getIDsEx(get_TrxName(), sql, treeId, parent.getC_SalesRegion_ID());
+		for(int salesRegionId : ids) {
+			MSalesRegion salesRegion = new MSalesRegion(getCtx(), salesRegionId, get_TrxName());
+			if(salesRegion.getC_SalesRegion_ID() != 0) {
+				salesRegion.setSalesRep_ID(parent.getSalesRep_ID());
+				salesRegion.saveEx();
+				if(salesRegion.isSummary()) {
+					setSalesRep(salesRegion);
+				}
+			}
+		}
+	}
 	
 }	//	MSalesRegion

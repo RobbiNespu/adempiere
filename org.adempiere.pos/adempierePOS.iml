@@ -59,14 +59,14 @@
           <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/cron4j-2.2.1.jar!/" />
           <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/groovy-all-2.4.7.jar!/" />
           <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/groovy-engine.jar!/" />
-          <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/iText-2.1.7.jar!/" />
           <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/javaee.jar!/" />
           <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/jcommon-1.0.18.jar!/" />
           <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/jfreechart-1.0.15.jar!/" />
           <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/jgraph.jar!/" />
           <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/jnlp.jar!/" />
           <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/jpayment.jar!/" />
-          <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/jpedal.jar!/" />
+          <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/icepdf-core-6.2.2.jar!/" />
+          <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/icepdf-viewer-6.2.2.jar!/" />
           <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/jsp-api.jar!/" />
           <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/jstl.jar!/" />
           <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/junit.jar!/" />
@@ -91,7 +91,6 @@
           <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/wizard.jar!/" />
           <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/xercesImpl.jar!/" />
           <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/xjavadoc-1.1.jar!/" />
-          <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/xml-apis.jar!/" />
           <root url="jar://$MODULE_DIR$/../adempiere/tools/lib/jython.jar!/" />
         </CLASSES>
         <JAVADOC />

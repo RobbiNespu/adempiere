@@ -23,14 +23,14 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Model for C_DocType
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0 - $Id$ */
+ *  @version Release 3.9.3 - $Id$ */
 public class X_C_DocType extends PO implements I_C_DocType, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20171031L;
+	private static final long serialVersionUID = 20200804L;
 
     /** Standard Constructor */
     public X_C_DocType (Properties ctx, int C_DocType_ID, String trxName)
@@ -194,6 +194,34 @@ public class X_C_DocType extends PO implements I_C_DocType, I_Persistent
 	public int getC_DocTypeInvoice_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_C_DocTypeInvoice_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.compiere.model.I_C_DocType getC_DocTypePayment() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_DocType)MTable.get(getCtx(), org.compiere.model.I_C_DocType.Table_Name)
+			.getPO(getC_DocTypePayment_ID(), get_TrxName());	}
+
+	/** Set Document Type for Payment.
+		@param C_DocTypePayment_ID 
+		Document type used for Payments generated from this Pay Selection document
+	  */
+	public void setC_DocTypePayment_ID (int C_DocTypePayment_ID)
+	{
+		if (C_DocTypePayment_ID < 1) 
+			set_Value (COLUMNNAME_C_DocTypePayment_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_DocTypePayment_ID, Integer.valueOf(C_DocTypePayment_ID));
+	}
+
+	/** Get Document Type for Payment.
+		@return Document type used for Payments generated from this Pay Selection document
+	  */
+	public int getC_DocTypePayment_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_DocTypePayment_ID);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
@@ -365,6 +393,22 @@ public class X_C_DocType extends PO implements I_C_DocType, I_Persistent
 	public static final String DOCBASETYPE_APPaymentSelection = "APS";
 	/** Sales Commission = SOC */
 	public static final String DOCBASETYPE_SalesCommission = "SOC";
+	/** Financial Agreement = FMA */
+	public static final String DOCBASETYPE_FinancialAgreement = "FMA";
+	/** Financial Transaction Batch = FMB */
+	public static final String DOCBASETYPE_FinancialTransactionBatch = "FMB";
+	/** Fixed Assets Split = FAS */
+	public static final String DOCBASETYPE_FixedAssetsSplit = "FAS";
+	/** Attendance Record = TNA */
+	public static final String DOCBASETYPE_AttendanceRecord = "TNA";
+	/** HR Incidence = TNI */
+	public static final String DOCBASETYPE_HRIncidence = "TNI";
+	/** Leave Request = TNL */
+	public static final String DOCBASETYPE_LeaveRequest = "TNL";
+	/** Freight Order = FRO */
+	public static final String DOCBASETYPE_FreightOrder = "FRO";
+	/** Package = MMK */
+	public static final String DOCBASETYPE_Package = "MMK";
 	/** Fixed Assets Addition = FAA */
 	public static final String DOCBASETYPE_FixedAssetsAddition = "FAA";
 	/** Fixed Assets Disposal = FAD */
@@ -435,6 +479,8 @@ public class X_C_DocType extends PO implements I_C_DocType, I_Persistent
 	public static final String DOCSUBTYPESO_ReturnMaterial = "RM";
 	/** Prepay Order = PR */
 	public static final String DOCSUBTYPESO_PrepayOrder = "PR";
+	/** Invoice Order = IO */
+	public static final String DOCSUBTYPESO_InvoiceOrder = "IO";
 	/** Set SO Sub Type.
 		@param DocSubTypeSO 
 		Sales Order Sub Type
@@ -557,6 +603,51 @@ public class X_C_DocType extends PO implements I_C_DocType, I_Persistent
 	public boolean isHasProforma () 
 	{
 		Object oo = get_Value(COLUMNNAME_HasProforma);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	/** Set Allocate Prepayments.
+		@param IsAllocateImmediate Allocate Prepayments	  */
+	public void setIsAllocateImmediate (boolean IsAllocateImmediate)
+	{
+		set_Value (COLUMNNAME_IsAllocateImmediate, Boolean.valueOf(IsAllocateImmediate));
+	}
+
+	/** Get Allocate Prepayments.
+		@return Allocate Prepayments	  */
+	public boolean isAllocateImmediate () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsAllocateImmediate);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	/** Set Bank Transfer.
+		@param IsBankTransfer 
+		Bank Transfer
+	  */
+	public void setIsBankTransfer (boolean IsBankTransfer)
+	{
+		set_Value (COLUMNNAME_IsBankTransfer, Boolean.valueOf(IsBankTransfer));
+	}
+
+	/** Get Bank Transfer.
+		@return Bank Transfer
+	  */
+	public boolean isBankTransfer () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsBankTransfer);
 		if (oo != null) 
 		{
 			 if (oo instanceof Boolean) 
@@ -767,6 +858,30 @@ public class X_C_DocType extends PO implements I_C_DocType, I_Persistent
 	public boolean isOverwriteSeqOnComplete () 
 	{
 		Object oo = get_Value(COLUMNNAME_IsOverwriteSeqOnComplete);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	/** Set Payroll Payment.
+		@param IsPayrollPayment 
+		Used for mark a document type or payment for identify as payment of payroll
+	  */
+	public void setIsPayrollPayment (boolean IsPayrollPayment)
+	{
+		set_Value (COLUMNNAME_IsPayrollPayment, Boolean.valueOf(IsPayrollPayment));
+	}
+
+	/** Get Payroll Payment.
+		@return Used for mark a document type or payment for identify as payment of payroll
+	  */
+	public boolean isPayrollPayment () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsPayrollPayment);
 		if (oo != null) 
 		{
 			 if (oo instanceof Boolean) 

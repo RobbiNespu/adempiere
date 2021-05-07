@@ -38,6 +38,7 @@ import org.compiere.util.CLogger;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
+import org.compiere.util.Util;
 
 /**
  * The SmallViewController provides an generic MVC connection between the "view" of editor fields
@@ -52,6 +53,9 @@ import org.compiere.util.Msg;
  * View displays that contain fields should implement the SmallViewEditable interface.  
  *  
  * @author mckayERP michael.mckay@mckayerp.com
+ * @author Yamel Senih, ysenih@erpcya.com, ERPCyA http://www.erpya.com
+ * 		<li>FR [ 1742 ] Dependent field do not refresh automatically
+ * 		@see https://github.com/adempiere/adempiere/issues/1742
  *
  */
 public abstract class SmallViewController implements SmallViewEditable, VetoableChangeListener, PropertyChangeListener, ValueChangeListener {
@@ -63,8 +67,10 @@ public abstract class SmallViewController implements SmallViewEditable, Vetoable
 		StackTraceElement[] stElements = Thread.currentThread().getStackTrace();
         for (int i=1; i<stElements.length; i++) {
             StackTraceElement ste = stElements[i];
-            if (ste.getClassName().contains("webui")) {
+            if (ste.getClassName().contains("webui")
+            		|| ste.getClassName().contains("zk.ui")) {
                 m_IsSwing = false;
+                break;
             }
         }
 	}	
@@ -111,6 +117,8 @@ public abstract class SmallViewController implements SmallViewEditable, Vetoable
 	private boolean m_HasParameters = false;
 
 	private CLogger log = CLogger.getCLogger(this.getClass());
+	/** Max Display Length = 60		*/
+	public static final int MAXDISPLAY_LENGTH = 30;
 	
 	// Abstract methods
 	
@@ -468,7 +476,11 @@ public abstract class SmallViewController implements SmallViewEditable, Vetoable
 		voBase.DefaultValue = isTo? field.getDefaultValue2(): field.getDefaultValue();
 		voBase.DefaultValue2 = field.getDefaultValue2();
 		voBase.InfoFactoryClass = field.getInfoFactoryClass();
+		if(field.getFieldLength() == 0) {
+			field.setFieldLength(MAXDISPLAY_LENGTH);
+		}
 		voBase.FieldLength = field.getFieldLength();
+		voBase.DisplayLength = field.getFieldLength();
 		voBase.ReadOnlyLogic = field.getReadOnlyLogic();
 		voBase.DisplayLogic = field.getDisplayLogic();
 		voBase.VFormat = field.getVFormat();
@@ -481,6 +493,8 @@ public abstract class SmallViewController implements SmallViewEditable, Vetoable
 		voBase.Help = field.getHelp();
 		voBase.Header = isTo? Msg.getMsg(Env.getCtx(), "To"): field.getName();
 		voBase.IsColumnSQLReference = true;
+		voBase.FieldLength = field.getFieldLength();
+		voBase.DisplayLength = field.getFieldLength();
 		voBase.initFinish();
 		//	Return 
 		return voBase;
@@ -565,7 +579,9 @@ public abstract class SmallViewController implements SmallViewEditable, Vetoable
 						// Don't want to overwrite a user input, so if the field is rw and has
 						// a value, don't change it.
 						Object defaultValue = field.getDefault();
-						if (defaultValue != null && field.getOldValue() == null && (value == null || !value.equals(defaultValue))) {
+						if (defaultValue != null 
+								&& (field.getOldValue() == null || !defaultValue.equals(field.getOldValue()) || (DisplayType.isNumeric(field.getVO().displayType))) 
+								&& (value == null || !value.equals(defaultValue))) {
 							// Set the context and fire events if there is a change in value.
 							// Setting the field value to null fires events even if the field is
 							// already null so don't set null if the value is already null.
@@ -593,9 +609,12 @@ public abstract class SmallViewController implements SmallViewEditable, Vetoable
 							if (valueTo == null 
 									|| valueTo.toString().length() == 0 
 									|| !m_IsLoaded 
-									|| (!rw && DisplayType.isNumeric(fieldTo.getVO().displayType))) {
+									|| (!rw && (DisplayType.isNumeric(fieldTo.getVO().displayType)
+											|| DisplayType.isDate(fieldTo.getVO().displayType)))) {
 								Object defaultValueTo = fieldTo.getDefault();
-								if (defaultValueTo != null && fieldTo.getOldValue() == null && (valueTo == null || !valueTo.equals(defaultValueTo))) {
+								if (defaultValueTo != null 
+										&& (fieldTo.getOldValue() == null || !defaultValueTo.equals(fieldTo.getOldValue()) || DisplayType.isNumeric(fieldTo.getVO().displayType)) 
+										&& (valueTo == null || !valueTo.equals(defaultValueTo))) {
 									fieldTo.setValue(defaultValueTo, false);  // Not inserting - overwriting the current value
 									valueSet = true;
 									// Check for valid values, mandatory (similar to GridController)
@@ -642,7 +661,7 @@ public abstract class SmallViewController implements SmallViewEditable, Vetoable
 	 *  @param changedField changed field
 	 */
 	private void processDependencies (GridField changedField) {
-		String columnName = changedField.getColumnName();
+		String columnName = Util.isEmpty(changedField.getColumnNameAlias()) ? changedField.getColumnName() : changedField.getColumnNameAlias();
 
 		for (GridField field : fields) {
 			if (field == null || field == changedField)
@@ -696,7 +715,7 @@ public abstract class SmallViewController implements SmallViewEditable, Vetoable
 	 * Validate all fields for values and mandatory
 	 * @return null if nothing happens
 	 */
-	public String 	validateFields() {
+	public String validateFields() {
 		log.config("");
 
 		StringBuffer sb = new StringBuffer();
@@ -704,7 +723,9 @@ public abstract class SmallViewController implements SmallViewEditable, Vetoable
 		for (int i = 0; i < size; i++) {
 			GridField field = fields.get(i);
 			//	FR [ 566 ] Only Information
-			if(field == null || field.isInfoOnly())
+			if(field == null 
+					|| field.isInfoOnly()
+					|| !field.isDisplayed(true))
 				continue;
 			// field.validateValue tests for mandatory values and correct lookup selection
 			// if there is an error, the field's error flag will be set
@@ -834,13 +855,11 @@ public abstract class SmallViewController implements SmallViewEditable, Vetoable
 		//	Set GridField
 		if (evt.getSource() instanceof GridField) {
 			changedField = ((GridField) evt.getSource());
-		}
-		else
+		} else {
 			return;
-		
+		}
 		//	Change Dependents
 		fieldChange(changedField, evt.getNewValue(), evt.getPropertyName());
-		
 	}
 	
 	/**

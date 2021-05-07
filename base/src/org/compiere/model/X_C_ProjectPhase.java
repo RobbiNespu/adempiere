@@ -26,14 +26,14 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Model for C_ProjectPhase
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0 - $Id$ */
+ *  @version Release 3.9.2 - $Id$ */
 public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20171102L;
+	private static final long serialVersionUID = 20191120L;
 
     /** Standard Constructor */
     public X_C_ProjectPhase (Properties ctx, int C_ProjectPhase_ID, String trxName)
@@ -41,9 +41,9 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
       super (ctx, C_ProjectPhase_ID, trxName);
       /** if (C_ProjectPhase_ID == 0)
         {
-			setCommittedAmt (Env.ZERO);
-			setC_Project_ID (0);
 			setC_ProjectPhase_ID (0);
+			setC_Project_ID (0);
+			setCommittedAmt (Env.ZERO);
 			setIsCommitCeiling (false);
 			setIsComplete (false);
 // N
@@ -84,6 +84,11 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
       return sb.toString();
     }
 
+	public org.compiere.model.I_AD_Org getAD_OrgTrx() throws RuntimeException
+    {
+		return (org.compiere.model.I_AD_Org)MTable.get(getCtx(), org.compiere.model.I_AD_Org.Table_Name)
+			.getPO(getAD_OrgTrx_ID(), get_TrxName());	}
+
 	/** Set Trx Organization.
 		@param AD_OrgTrx_ID 
 		Performing or initiating organization
@@ -105,6 +110,51 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	public org.compiere.model.I_AD_Workflow getAD_Workflow() throws RuntimeException
+    {
+		return (org.compiere.model.I_AD_Workflow)MTable.get(getCtx(), org.compiere.model.I_AD_Workflow.Table_Name)
+			.getPO(getAD_Workflow_ID(), get_TrxName());	}
+
+	/** Set Workflow.
+		@param AD_Workflow_ID 
+		Workflow or combination of tasks
+	  */
+	public void setAD_Workflow_ID (int AD_Workflow_ID)
+	{
+		if (AD_Workflow_ID < 1) 
+			set_Value (COLUMNNAME_AD_Workflow_ID, null);
+		else 
+			set_Value (COLUMNNAME_AD_Workflow_ID, Integer.valueOf(AD_Workflow_ID));
+	}
+
+	/** Get Workflow.
+		@return Workflow or combination of tasks
+	  */
+	public int getAD_Workflow_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_AD_Workflow_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** Set Alert Message.
+		@param AlertMessage 
+		Message of the Alert
+	  */
+	public void setAlertMessage (String AlertMessage)
+	{
+		set_Value (COLUMNNAME_AlertMessage, AlertMessage);
+	}
+
+	/** Get Alert Message.
+		@return Message of the Alert
+	  */
+	public String getAlertMessage () 
+	{
+		return (String)get_Value(COLUMNNAME_AlertMessage);
 	}
 
 	public org.compiere.model.I_C_Activity getC_Activity() throws RuntimeException
@@ -163,24 +213,32 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 		return ii.intValue();
 	}
 
-	/** Set Committed Amount.
-		@param CommittedAmt 
-		The (legal) commitment amount
+	public org.compiere.model.I_C_Order getC_OrderPO() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_Order)MTable.get(getCtx(), org.compiere.model.I_C_Order.Table_Name)
+			.getPO(getC_OrderPO_ID(), get_TrxName());	}
+
+	/** Set Purchase Order.
+		@param C_OrderPO_ID 
+		Purchase Order
 	  */
-	public void setCommittedAmt (BigDecimal CommittedAmt)
+	public void setC_OrderPO_ID (int C_OrderPO_ID)
 	{
-		set_Value (COLUMNNAME_CommittedAmt, CommittedAmt);
+		if (C_OrderPO_ID < 1) 
+			set_ValueNoCheck (COLUMNNAME_C_OrderPO_ID, null);
+		else 
+			set_ValueNoCheck (COLUMNNAME_C_OrderPO_ID, Integer.valueOf(C_OrderPO_ID));
 	}
 
-	/** Get Committed Amount.
-		@return The (legal) commitment amount
+	/** Get Purchase Order.
+		@return Purchase Order
 	  */
-	public BigDecimal getCommittedAmt () 
+	public int getC_OrderPO_ID () 
 	{
-		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_CommittedAmt);
-		if (bd == null)
-			 return Env.ZERO;
-		return bd;
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_OrderPO_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
 	}
 
 	public org.compiere.model.I_C_Order getC_Order() throws RuntimeException
@@ -239,34 +297,6 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 		return ii.intValue();
 	}
 
-	public org.compiere.model.I_C_Project getC_Project() throws RuntimeException
-    {
-		return (org.compiere.model.I_C_Project)MTable.get(getCtx(), org.compiere.model.I_C_Project.Table_Name)
-			.getPO(getC_Project_ID(), get_TrxName());	}
-
-	/** Set Project.
-		@param C_Project_ID 
-		Financial Project
-	  */
-	public void setC_Project_ID (int C_Project_ID)
-	{
-		if (C_Project_ID < 1) 
-			set_ValueNoCheck (COLUMNNAME_C_Project_ID, null);
-		else 
-			set_ValueNoCheck (COLUMNNAME_C_Project_ID, Integer.valueOf(C_Project_ID));
-	}
-
-	/** Get Project.
-		@return Financial Project
-	  */
-	public int getC_Project_ID () 
-	{
-		Integer ii = (Integer)get_Value(COLUMNNAME_C_Project_ID);
-		if (ii == null)
-			 return 0;
-		return ii.intValue();
-	}
-
 	/** Set Project Phase.
 		@param C_ProjectPhase_ID 
 		Phase of a Project
@@ -318,6 +348,34 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 		return ii.intValue();
 	}
 
+	public org.compiere.model.I_C_Project getC_Project() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_Project)MTable.get(getCtx(), org.compiere.model.I_C_Project.Table_Name)
+			.getPO(getC_Project_ID(), get_TrxName());	}
+
+	/** Set Project.
+		@param C_Project_ID 
+		Financial Project
+	  */
+	public void setC_Project_ID (int C_Project_ID)
+	{
+		if (C_Project_ID < 1) 
+			set_ValueNoCheck (COLUMNNAME_C_Project_ID, null);
+		else 
+			set_ValueNoCheck (COLUMNNAME_C_Project_ID, Integer.valueOf(C_Project_ID));
+	}
+
+	/** Get Project.
+		@return Financial Project
+	  */
+	public int getC_Project_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_Project_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
 	public org.compiere.model.I_C_SalesRegion getC_SalesRegion() throws RuntimeException
     {
 		return (org.compiere.model.I_C_SalesRegion)MTable.get(getCtx(), org.compiere.model.I_C_SalesRegion.Table_Name)
@@ -346,6 +404,26 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 		return ii.intValue();
 	}
 
+	/** Set Committed Amount.
+		@param CommittedAmt 
+		The (legal) commitment amount
+	  */
+	public void setCommittedAmt (BigDecimal CommittedAmt)
+	{
+		set_Value (COLUMNNAME_CommittedAmt, CommittedAmt);
+	}
+
+	/** Get Committed Amount.
+		@return The (legal) commitment amount
+	  */
+	public BigDecimal getCommittedAmt () 
+	{
+		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_CommittedAmt);
+		if (bd == null)
+			 return Env.ZERO;
+		return bd;
+	}
+
 	/** Set Deadline.
 		@param DateDeadline 
 		Deadline
@@ -363,7 +441,7 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 		return (Timestamp)get_Value(COLUMNNAME_DateDeadline);
 	}
 
-	/** Set Date Finish Schedule.
+	/** Set Finish Schedule.
 		@param DateFinishSchedule 
 		Scheduled Finish date for this Order
 	  */
@@ -372,7 +450,7 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 		set_Value (COLUMNNAME_DateFinishSchedule, DateFinishSchedule);
 	}
 
-	/** Get Date Finish Schedule.
+	/** Get Finish Schedule.
 		@return Scheduled Finish date for this Order
 	  */
 	public Timestamp getDateFinishSchedule () 
@@ -380,7 +458,75 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 		return (Timestamp)get_Value(COLUMNNAME_DateFinishSchedule);
 	}
 
-	/** Set Date Start Schedule.
+	/** Set Date last action.
+		@param DateLastAction 
+		Date this request was last acted on
+	  */
+	public void setDateLastAction (Timestamp DateLastAction)
+	{
+		set_Value (COLUMNNAME_DateLastAction, DateLastAction);
+	}
+
+	/** Get Date last action.
+		@return Date this request was last acted on
+	  */
+	public Timestamp getDateLastAction () 
+	{
+		return (Timestamp)get_Value(COLUMNNAME_DateLastAction);
+	}
+
+	/** Set Last Alert.
+		@param DateLastAlert 
+		Date when last alert were sent
+	  */
+	public void setDateLastAlert (Timestamp DateLastAlert)
+	{
+		set_Value (COLUMNNAME_DateLastAlert, DateLastAlert);
+	}
+
+	/** Get Last Alert.
+		@return Date when last alert were sent
+	  */
+	public Timestamp getDateLastAlert () 
+	{
+		return (Timestamp)get_Value(COLUMNNAME_DateLastAlert);
+	}
+
+	/** Set Date last run.
+		@param DateLastRun 
+		Date the process was last run.
+	  */
+	public void setDateLastRun (Timestamp DateLastRun)
+	{
+		set_Value (COLUMNNAME_DateLastRun, DateLastRun);
+	}
+
+	/** Get Date last run.
+		@return Date the process was last run.
+	  */
+	public Timestamp getDateLastRun () 
+	{
+		return (Timestamp)get_Value(COLUMNNAME_DateLastRun);
+	}
+
+	/** Set Date next run.
+		@param DateNextRun 
+		Date the process will run next
+	  */
+	public void setDateNextRun (Timestamp DateNextRun)
+	{
+		set_Value (COLUMNNAME_DateNextRun, DateNextRun);
+	}
+
+	/** Get Date next run.
+		@return Date the process will run next
+	  */
+	public Timestamp getDateNextRun () 
+	{
+		return (Timestamp)get_Value(COLUMNNAME_DateNextRun);
+	}
+
+	/** Set Start Schedule.
 		@param DateStartSchedule 
 		Scheduled start date for this Order
 	  */
@@ -389,7 +535,7 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 		set_Value (COLUMNNAME_DateStartSchedule, DateStartSchedule);
 	}
 
-	/** Get Date Start Schedule.
+	/** Get Start Schedule.
 		@return Scheduled start date for this Order
 	  */
 	public Timestamp getDateStartSchedule () 
@@ -412,6 +558,32 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 	public String getDescription () 
 	{
 		return (String)get_Value(COLUMNNAME_Description);
+	}
+
+	/** DueType AD_Reference_ID=222 */
+	public static final int DUETYPE_AD_Reference_ID=222;
+	/** Overdue = 3 */
+	public static final String DUETYPE_Overdue = "3";
+	/** Due = 5 */
+	public static final String DUETYPE_Due = "5";
+	/** Scheduled = 7 */
+	public static final String DUETYPE_Scheduled = "7";
+	/** Set Due type.
+		@param DueType 
+		Status of the next action for this Request
+	  */
+	public void setDueType (String DueType)
+	{
+
+		set_Value (COLUMNNAME_DueType, DueType);
+	}
+
+	/** Get Due type.
+		@return Status of the next action for this Request
+	  */
+	public String getDueType () 
+	{
+		return (String)get_Value(COLUMNNAME_DueType);
 	}
 
 	/** Set Estimated Duration.
@@ -500,6 +672,54 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 		return (Timestamp)get_Value(COLUMNNAME_EndDate);
 	}
 
+	/** Set Frequency.
+		@param Frequency 
+		Frequency of events
+	  */
+	public void setFrequency (int Frequency)
+	{
+		set_Value (COLUMNNAME_Frequency, Integer.valueOf(Frequency));
+	}
+
+	/** Get Frequency.
+		@return Frequency of events
+	  */
+	public int getFrequency () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_Frequency);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** FrequencyType AD_Reference_ID=283 */
+	public static final int FREQUENCYTYPE_AD_Reference_ID=283;
+	/** Daily = D */
+	public static final String FREQUENCYTYPE_Daily = "D";
+	/** Weekly = W */
+	public static final String FREQUENCYTYPE_Weekly = "W";
+	/** Monthly = M */
+	public static final String FREQUENCYTYPE_Monthly = "M";
+	/** Quarterly = Q */
+	public static final String FREQUENCYTYPE_Quarterly = "Q";
+	/** Set Frequency Type.
+		@param FrequencyType 
+		Frequency of event
+	  */
+	public void setFrequencyType (String FrequencyType)
+	{
+
+		set_Value (COLUMNNAME_FrequencyType, FrequencyType);
+	}
+
+	/** Get Frequency Type.
+		@return Frequency of event
+	  */
+	public String getFrequencyType () 
+	{
+		return (String)get_Value(COLUMNNAME_FrequencyType);
+	}
+
 	/** Set Generate Order.
 		@param GenerateOrder 
 		Generate Order
@@ -532,6 +752,29 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 	public String getHelp () 
 	{
 		return (String)get_Value(COLUMNNAME_Help);
+	}
+
+	/** Set Bill of Materials.
+		@param IsBOM 
+		Bill of Materials
+	  */
+	public void setIsBOM (boolean IsBOM)
+	{
+		throw new IllegalArgumentException ("IsBOM is virtual column");	}
+
+	/** Get Bill of Materials.
+		@return Bill of Materials
+	  */
+	public boolean isBOM () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsBOM);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
 	}
 
 	/** Set Commitment is Ceiling.
@@ -582,6 +825,30 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 		return false;
 	}
 
+	/** Set Indefinite.
+		@param IsIndefinite 
+		Indefinite
+	  */
+	public void setIsIndefinite (boolean IsIndefinite)
+	{
+		set_Value (COLUMNNAME_IsIndefinite, Boolean.valueOf(IsIndefinite));
+	}
+
+	/** Get Indefinite.
+		@return Indefinite
+	  */
+	public boolean isIndefinite () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsIndefinite);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
 	/** Set Is Milestone.
 		@param IsMilestone Is Milestone	  */
 	public void setIsMilestone (boolean IsMilestone)
@@ -594,6 +861,53 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 	public boolean isMilestone () 
 	{
 		Object oo = get_Value(COLUMNNAME_IsMilestone);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	/** Set Purchased.
+		@param IsPurchased 
+		Organization purchases this product
+	  */
+	public void setIsPurchased (boolean IsPurchased)
+	{
+		throw new IllegalArgumentException ("IsPurchased is virtual column");	}
+
+	/** Get Purchased.
+		@return Organization purchases this product
+	  */
+	public boolean isPurchased () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsPurchased);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	/** Set Is Recurrent.
+		@param IsRecurrent 
+		The flag Is Recurrent, indicates if a project task is recurring
+	  */
+	public void setIsRecurrent (boolean IsRecurrent)
+	{
+		set_Value (COLUMNNAME_IsRecurrent, Boolean.valueOf(IsRecurrent));
+	}
+
+	/** Get Is Recurrent.
+		@return The flag Is Recurrent, indicates if a project task is recurring
+	  */
+	public boolean isRecurrent () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsRecurrent);
 		if (oo != null) 
 		{
 			 if (oo instanceof Boolean) 
@@ -646,6 +960,62 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 	public String getName () 
 	{
 		return (String)get_Value(COLUMNNAME_Name);
+	}
+
+	public org.eevolution.model.I_PP_Order getPP_Order() throws RuntimeException
+    {
+		return (org.eevolution.model.I_PP_Order)MTable.get(getCtx(), org.eevolution.model.I_PP_Order.Table_Name)
+			.getPO(getPP_Order_ID(), get_TrxName());	}
+
+	/** Set Manufacturing Order.
+		@param PP_Order_ID 
+		Manufacturing Order
+	  */
+	public void setPP_Order_ID (int PP_Order_ID)
+	{
+		if (PP_Order_ID < 1) 
+			set_ValueNoCheck (COLUMNNAME_PP_Order_ID, null);
+		else 
+			set_ValueNoCheck (COLUMNNAME_PP_Order_ID, Integer.valueOf(PP_Order_ID));
+	}
+
+	/** Get Manufacturing Order.
+		@return Manufacturing Order
+	  */
+	public int getPP_Order_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_PP_Order_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.eevolution.model.I_PP_Product_BOM getPP_Product_BOM() throws RuntimeException
+    {
+		return (org.eevolution.model.I_PP_Product_BOM)MTable.get(getCtx(), org.eevolution.model.I_PP_Product_BOM.Table_Name)
+			.getPO(getPP_Product_BOM_ID(), get_TrxName());	}
+
+	/** Set BOM & Formula.
+		@param PP_Product_BOM_ID 
+		BOM & Formula
+	  */
+	public void setPP_Product_BOM_ID (int PP_Product_BOM_ID)
+	{
+		if (PP_Product_BOM_ID < 1) 
+			set_Value (COLUMNNAME_PP_Product_BOM_ID, null);
+		else 
+			set_Value (COLUMNNAME_PP_Product_BOM_ID, Integer.valueOf(PP_Product_BOM_ID));
+	}
+
+	/** Get BOM & Formula.
+		@return BOM & Formula
+	  */
+	public int getPP_Product_BOM_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_PP_Product_BOM_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
 	}
 
 	/** Set Percentage completed.
@@ -816,6 +1186,46 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 		return ii.intValue();
 	}
 
+	/** Set Maximum Runs.
+		@param RunsMax 
+		Number of recurring runs
+	  */
+	public void setRunsMax (int RunsMax)
+	{
+		set_Value (COLUMNNAME_RunsMax, Integer.valueOf(RunsMax));
+	}
+
+	/** Get Maximum Runs.
+		@return Number of recurring runs
+	  */
+	public int getRunsMax () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_RunsMax);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** Set Remaining Runs.
+		@param RunsRemaining 
+		Number of recurring runs remaining
+	  */
+	public void setRunsRemaining (int RunsRemaining)
+	{
+		set_Value (COLUMNNAME_RunsRemaining, Integer.valueOf(RunsRemaining));
+	}
+
+	/** Get Remaining Runs.
+		@return Number of recurring runs remaining
+	  */
+	public int getRunsRemaining () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_RunsRemaining);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
 	/** Set Sequence.
 		@param SeqNo 
 		Method of ordering records; lowest number comes first
@@ -859,6 +1269,23 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 	public Timestamp getStartDate () 
 	{
 		return (Timestamp)get_Value(COLUMNNAME_StartDate);
+	}
+
+	/** Set Immutable Universally Unique Identifier.
+		@param UUID 
+		Immutable Universally Unique Identifier
+	  */
+	public void setUUID (String UUID)
+	{
+		set_Value (COLUMNNAME_UUID, UUID);
+	}
+
+	/** Get Immutable Universally Unique Identifier.
+		@return Immutable Universally Unique Identifier
+	  */
+	public String getUUID () 
+	{
+		return (String)get_Value(COLUMNNAME_UUID);
 	}
 
 	public org.compiere.model.I_C_ElementValue getUser1() throws RuntimeException
@@ -973,20 +1400,31 @@ public class X_C_ProjectPhase extends PO implements I_C_ProjectPhase, I_Persiste
 		return ii.intValue();
 	}
 
-	/** Set Immutable Universally Unique Identifier.
-		@param UUID 
-		Immutable Universally Unique Identifier
+	public org.compiere.model.I_C_BPartner getVendor() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_BPartner)MTable.get(getCtx(), org.compiere.model.I_C_BPartner.Table_Name)
+			.getPO(getVendor_ID(), get_TrxName());	}
+
+	/** Set Vendor.
+		@param Vendor_ID 
+		The Vendor of the product/service
 	  */
-	public void setUUID (String UUID)
+	public void setVendor_ID (int Vendor_ID)
 	{
-		set_Value (COLUMNNAME_UUID, UUID);
+		if (Vendor_ID < 1) 
+			set_Value (COLUMNNAME_Vendor_ID, null);
+		else 
+			set_Value (COLUMNNAME_Vendor_ID, Integer.valueOf(Vendor_ID));
 	}
 
-	/** Get Immutable Universally Unique Identifier.
-		@return Immutable Universally Unique Identifier
+	/** Get Vendor.
+		@return The Vendor of the product/service
 	  */
-	public String getUUID () 
+	public int getVendor_ID () 
 	{
-		return (String)get_Value(COLUMNNAME_UUID);
+		Integer ii = (Integer)get_Value(COLUMNNAME_Vendor_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
 	}
 }

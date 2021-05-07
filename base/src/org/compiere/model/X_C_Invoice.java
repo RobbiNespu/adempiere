@@ -26,14 +26,14 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Model for C_Invoice
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0 - $Id$ */
+ *  @version Release 3.9.3 - $Id$ */
 public class X_C_Invoice extends PO implements I_C_Invoice, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20171001L;
+	private static final long serialVersionUID = 20200114L;
 
     /** Standard Constructor */
     public X_C_Invoice (Properties ctx, int C_Invoice_ID, String trxName)
@@ -112,6 +112,11 @@ public class X_C_Invoice extends PO implements I_C_Invoice, I_Persistent
       return sb.toString();
     }
 
+	public org.compiere.model.I_AD_Org getAD_OrgTrx() throws RuntimeException
+    {
+		return (org.compiere.model.I_AD_Org)MTable.get(getCtx(), org.compiere.model.I_AD_Org.Table_Name)
+			.getPO(getAD_OrgTrx_ID(), get_TrxName());	}
+
 	/** Set Trx Organization.
 		@param AD_OrgTrx_ID 
 		Performing or initiating organization
@@ -161,6 +166,23 @@ public class X_C_Invoice extends PO implements I_C_Invoice, I_Persistent
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	/** Set BOM Drop.
+		@param BOMDrop 
+		Drop (expand) Bill of Materials into an Order, Invoice, etc.
+	  */
+	public void setBOMDrop (String BOMDrop)
+	{
+		set_Value (COLUMNNAME_BOMDrop, BOMDrop);
+	}
+
+	/** Get BOM Drop.
+		@return Drop (expand) Bill of Materials into an Order, Invoice, etc.
+	  */
+	public String getBOMDrop () 
+	{
+		return (String)get_Value(COLUMNNAME_BOMDrop);
 	}
 
 	public org.compiere.model.I_C_Activity getC_Activity() throws RuntimeException
@@ -685,6 +707,34 @@ public class X_C_Invoice extends PO implements I_C_Invoice, I_Persistent
 		return (String)get_Value(COLUMNNAME_CreateFrom);
 	}
 
+	public org.compiere.model.I_C_SalesRegion getC_SalesRegion() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_SalesRegion)MTable.get(getCtx(), org.compiere.model.I_C_SalesRegion.Table_Name)
+			.getPO(getC_SalesRegion_ID(), get_TrxName());	}
+
+	/** Set Sales Region.
+		@param C_SalesRegion_ID 
+		Sales coverage region
+	  */
+	public void setC_SalesRegion_ID (int C_SalesRegion_ID)
+	{
+		if (C_SalesRegion_ID < 1) 
+			set_Value (COLUMNNAME_C_SalesRegion_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_SalesRegion_ID, Integer.valueOf(C_SalesRegion_ID));
+	}
+
+	/** Get Sales Region.
+		@return Sales coverage region
+	  */
+	public int getC_SalesRegion_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_SalesRegion_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
 	/** Set Account Date.
 		@param DateAcct 
 		Accounting Date
@@ -899,6 +949,31 @@ public class X_C_Invoice extends PO implements I_C_Invoice, I_Persistent
 	public Timestamp getDunningGrace () 
 	{
 		return (Timestamp)get_Value(COLUMNNAME_DunningGrace);
+	}
+
+	public org.spin.model.I_FM_Account getFM_Account() throws RuntimeException
+    {
+		return (org.spin.model.I_FM_Account)MTable.get(getCtx(), org.spin.model.I_FM_Account.Table_Name)
+			.getPO(getFM_Account_ID(), get_TrxName());	}
+
+	/** Set Financial Account.
+		@param FM_Account_ID Financial Account	  */
+	public void setFM_Account_ID (int FM_Account_ID)
+	{
+		if (FM_Account_ID < 1) 
+			set_Value (COLUMNNAME_FM_Account_ID, null);
+		else 
+			set_Value (COLUMNNAME_FM_Account_ID, Integer.valueOf(FM_Account_ID));
+	}
+
+	/** Get Financial Account.
+		@return Financial Account	  */
+	public int getFM_Account_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_FM_Account_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
 	}
 
 	/** Set Generate To.

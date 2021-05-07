@@ -27,14 +27,14 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Model for WM_InOutBound
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0 - $Id$ */
+ *  @version Release 3.9.2 - $Id$ */
 public class X_WM_InOutBound extends PO implements I_WM_InOutBound, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170731L;
+	private static final long serialVersionUID = 20191120L;
 
     /** Standard Constructor */
     public X_WM_InOutBound (Properties ctx, int WM_InOutBound_ID, String trxName)
@@ -95,6 +95,11 @@ public class X_WM_InOutBound extends PO implements I_WM_InOutBound, I_Persistent
         .append(get_ID()).append("]");
       return sb.toString();
     }
+
+	public org.compiere.model.I_AD_Org getAD_OrgTrx() throws RuntimeException
+    {
+		return (org.compiere.model.I_AD_Org)MTable.get(getCtx(), org.compiere.model.I_AD_Org.Table_Name)
+			.getPO(getAD_OrgTrx_ID(), get_TrxName());	}
 
 	/** Set Trx Organization.
 		@param AD_OrgTrx_ID 
@@ -610,6 +615,27 @@ public class X_WM_InOutBound extends PO implements I_WM_InOutBound, I_Persistent
 	public boolean isApproved () 
 	{
 		Object oo = get_Value(COLUMNNAME_IsApproved);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	/** Set Delivered.
+		@param IsDelivered Delivered	  */
+	public void setIsDelivered (boolean IsDelivered)
+	{
+		set_Value (COLUMNNAME_IsDelivered, Boolean.valueOf(IsDelivered));
+	}
+
+	/** Get Delivered.
+		@return Delivered	  */
+	public boolean isDelivered () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsDelivered);
 		if (oo != null) 
 		{
 			 if (oo instanceof Boolean) 

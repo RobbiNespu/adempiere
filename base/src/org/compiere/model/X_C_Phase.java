@@ -25,14 +25,14 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Model for C_Phase
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0 - $Id$ */
+ *  @version Release 3.9.2 - $Id$ */
 public class X_C_Phase extends PO implements I_C_Phase, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20171102L;
+	private static final long serialVersionUID = 20191120L;
 
     /** Standard Constructor */
     public X_C_Phase (Properties ctx, int C_Phase_ID, String trxName)
@@ -77,6 +77,34 @@ public class X_C_Phase extends PO implements I_C_Phase, I_Persistent
         .append(get_ID()).append("]");
       return sb.toString();
     }
+
+	public org.compiere.model.I_AD_Workflow getAD_Workflow() throws RuntimeException
+    {
+		return (org.compiere.model.I_AD_Workflow)MTable.get(getCtx(), org.compiere.model.I_AD_Workflow.Table_Name)
+			.getPO(getAD_Workflow_ID(), get_TrxName());	}
+
+	/** Set Workflow.
+		@param AD_Workflow_ID 
+		Workflow or combination of tasks
+	  */
+	public void setAD_Workflow_ID (int AD_Workflow_ID)
+	{
+		if (AD_Workflow_ID < 1) 
+			set_Value (COLUMNNAME_AD_Workflow_ID, null);
+		else 
+			set_Value (COLUMNNAME_AD_Workflow_ID, Integer.valueOf(AD_Workflow_ID));
+	}
+
+	/** Get Workflow.
+		@return Workflow or combination of tasks
+	  */
+	public int getAD_Workflow_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_AD_Workflow_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
 
 	/** Set Standard Phase.
 		@param C_Phase_ID 
@@ -198,6 +226,54 @@ public class X_C_Phase extends PO implements I_C_Phase, I_Persistent
 		return (String)get_Value(COLUMNNAME_DurationUnit);
 	}
 
+	/** Set Frequency.
+		@param Frequency 
+		Frequency of events
+	  */
+	public void setFrequency (int Frequency)
+	{
+		set_Value (COLUMNNAME_Frequency, Integer.valueOf(Frequency));
+	}
+
+	/** Get Frequency.
+		@return Frequency of events
+	  */
+	public int getFrequency () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_Frequency);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** FrequencyType AD_Reference_ID=283 */
+	public static final int FREQUENCYTYPE_AD_Reference_ID=283;
+	/** Daily = D */
+	public static final String FREQUENCYTYPE_Daily = "D";
+	/** Weekly = W */
+	public static final String FREQUENCYTYPE_Weekly = "W";
+	/** Monthly = M */
+	public static final String FREQUENCYTYPE_Monthly = "M";
+	/** Quarterly = Q */
+	public static final String FREQUENCYTYPE_Quarterly = "Q";
+	/** Set Frequency Type.
+		@param FrequencyType 
+		Frequency of event
+	  */
+	public void setFrequencyType (String FrequencyType)
+	{
+
+		set_Value (COLUMNNAME_FrequencyType, FrequencyType);
+	}
+
+	/** Get Frequency Type.
+		@return Frequency of event
+	  */
+	public String getFrequencyType () 
+	{
+		return (String)get_Value(COLUMNNAME_FrequencyType);
+	}
+
 	/** Set Comment/Help.
 		@param Help 
 		Comment or Hint
@@ -215,6 +291,53 @@ public class X_C_Phase extends PO implements I_C_Phase, I_Persistent
 		return (String)get_Value(COLUMNNAME_Help);
 	}
 
+	/** Set Bill of Materials.
+		@param IsBOM 
+		Bill of Materials
+	  */
+	public void setIsBOM (boolean IsBOM)
+	{
+		throw new IllegalArgumentException ("IsBOM is virtual column");	}
+
+	/** Get Bill of Materials.
+		@return Bill of Materials
+	  */
+	public boolean isBOM () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsBOM);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	/** Set Indefinite.
+		@param IsIndefinite 
+		Indefinite
+	  */
+	public void setIsIndefinite (boolean IsIndefinite)
+	{
+		set_Value (COLUMNNAME_IsIndefinite, Boolean.valueOf(IsIndefinite));
+	}
+
+	/** Get Indefinite.
+		@return Indefinite
+	  */
+	public boolean isIndefinite () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsIndefinite);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
 	/** Set Is Milestone.
 		@param IsMilestone Is Milestone	  */
 	public void setIsMilestone (boolean IsMilestone)
@@ -227,6 +350,30 @@ public class X_C_Phase extends PO implements I_C_Phase, I_Persistent
 	public boolean isMilestone () 
 	{
 		Object oo = get_Value(COLUMNNAME_IsMilestone);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	/** Set Is Recurrent.
+		@param IsRecurrent 
+		The flag Is Recurrent, indicates if a project task is recurring
+	  */
+	public void setIsRecurrent (boolean IsRecurrent)
+	{
+		set_Value (COLUMNNAME_IsRecurrent, Boolean.valueOf(IsRecurrent));
+	}
+
+	/** Get Is Recurrent.
+		@return The flag Is Recurrent, indicates if a project task is recurring
+	  */
+	public boolean isRecurrent () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsRecurrent);
 		if (oo != null) 
 		{
 			 if (oo instanceof Boolean) 
@@ -289,6 +436,34 @@ public class X_C_Phase extends PO implements I_C_Phase, I_Persistent
         return new KeyNamePair(get_ID(), getName());
     }
 
+	public org.eevolution.model.I_PP_Product_BOM getPP_Product_BOM() throws RuntimeException
+    {
+		return (org.eevolution.model.I_PP_Product_BOM)MTable.get(getCtx(), org.eevolution.model.I_PP_Product_BOM.Table_Name)
+			.getPO(getPP_Product_BOM_ID(), get_TrxName());	}
+
+	/** Set BOM & Formula.
+		@param PP_Product_BOM_ID 
+		BOM & Formula
+	  */
+	public void setPP_Product_BOM_ID (int PP_Product_BOM_ID)
+	{
+		if (PP_Product_BOM_ID < 1) 
+			set_Value (COLUMNNAME_PP_Product_BOM_ID, null);
+		else 
+			set_Value (COLUMNNAME_PP_Product_BOM_ID, Integer.valueOf(PP_Product_BOM_ID));
+	}
+
+	/** Get BOM & Formula.
+		@return BOM & Formula
+	  */
+	public int getPP_Product_BOM_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_PP_Product_BOM_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
 	/** PriorityRule AD_Reference_ID=154 */
 	public static final int PRIORITYRULE_AD_Reference_ID=154;
 	/** High = 3 */
@@ -342,6 +517,26 @@ public class X_C_Phase extends PO implements I_C_Phase, I_Persistent
 	public int getR_StandardRequestType_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_R_StandardRequestType_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** Set Maximum Runs.
+		@param RunsMax 
+		Number of recurring runs
+	  */
+	public void setRunsMax (int RunsMax)
+	{
+		set_Value (COLUMNNAME_RunsMax, Integer.valueOf(RunsMax));
+	}
+
+	/** Get Maximum Runs.
+		@return Number of recurring runs
+	  */
+	public int getRunsMax () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_RunsMax);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();

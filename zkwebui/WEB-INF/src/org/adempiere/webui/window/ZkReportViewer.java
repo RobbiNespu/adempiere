@@ -28,7 +28,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 
 import org.adempiere.exceptions.AdempiereException;
-import org.adempiere.pdf.Document;
+import org.adempiere.pdf.ITextDocument;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.apps.ProcessModalDialog;
 import org.adempiere.webui.apps.WReport;
@@ -61,6 +61,7 @@ import org.compiere.util.Env;
 import org.compiere.util.ImpExpUtil;
 import org.compiere.util.KeyNamePair;
 import org.compiere.util.Msg;
+import org.compiere.util.Util;
 import org.spin.util.AbstractExportFormat;
 import org.spin.util.ReportExportHandler;
 import org.zkoss.util.media.AMedia;
@@ -219,6 +220,7 @@ public class ZkReportViewer extends Window implements EventListener {
 		
 		previewType.setMold("select");
 		previewType.appendItem("PDF", "PDF");
+		previewType.appendItem("CSV", "CSV");
 		if (m_isAllowHTMLView) {
 			previewType.appendItem("HTML", "HTML");
 		}
@@ -246,6 +248,8 @@ public class ZkReportViewer extends Window implements EventListener {
 			type = "PDF";
 		}
 
+		if ("C".equals(type))
+			type = "CSV";
 		if ("H".equals(type))
 			type = "HTML";
 		if ("X".equals(type))
@@ -269,21 +273,20 @@ public class ZkReportViewer extends Window implements EventListener {
 			
 		if(m_reportEngine.getReportType() != null)
 		{
-			if(m_reportEngine.getReportType().equals("P"))
-			{
+			if(m_reportEngine.getReportType().equals("P")) {
 				previewType.setSelectedIndex(0);
 			}
-			else if(m_reportEngine.getReportType().equals("H"))
-			{
+			else if (m_reportEngine.getReportType().equals("C")) {
 				previewType.setSelectedIndex(1);
 			}
-			else if(m_reportEngine.getReportType().equals("X"))
-			{
+			else if(m_reportEngine.getReportType().equals("H")) {
 				previewType.setSelectedIndex(2);
 			}
-			else if(m_reportEngine.getReportType().equals("XX"))
-			{
+			else if(m_reportEngine.getReportType().equals("X")) {
 				previewType.setSelectedIndex(3);
+			}
+			else if(m_reportEngine.getReportType().equals("XX")) {
+				previewType.setSelectedIndex(4);
 			}
 		}
 
@@ -478,6 +481,17 @@ public class ZkReportViewer extends Window implements EventListener {
 			File file = File.createTempFile(prefix, ".xls", new File(path));
 			m_reportEngine.createXLSX(file);
 			media = new AMedia(prefix, "xlsx", "application/vnd.ms-excel", file, true);
+		}
+		else if ("CSV".equals(previewType.getSelectedItem().getValue())) {
+			String path = System.getProperty("java.io.tmpdir");
+			String prefix = makePrefix(m_reportEngine.getName());
+			if (log.isLoggable(Level.FINE))
+			{
+				log.log(Level.FINE, "Path=" + path + " Prefix=" + prefix);
+			}
+			File file = File.createTempFile(prefix, ".csv", new File(path));
+			m_reportEngine.createCSV(file, ',');
+			media = new AMedia(prefix, "csv", "text/csv", file, true);
 		}
 		iframe.setContent(media);
 	}
@@ -839,7 +853,7 @@ public class ZkReportViewer extends Window implements EventListener {
 	private void cmd_archive ()
 	{
 		boolean success = false;
-		byte[] data = Document.getPDFAsArray(m_reportEngine.getLayout().getPageable(false));	//	No Copy
+		byte[] data = new ITextDocument().getPDFAsArray(m_reportEngine.getLayout().getPageable(false));	//	No Copy
 		if (data != null)
 		{
 			MArchive archive = new MArchive (Env.getCtx(), m_reportEngine.getPrintInfo(), null);
@@ -878,6 +892,7 @@ public class ZkReportViewer extends Window implements EventListener {
 			cboType.getItems().clear();
 			//	
 			int defaultItem = 0;
+			exportHandler = new ReportExportHandler(m_ctx, m_reportEngine);
 			if(exportHandler.getExportFormatList() != null) {
 				for(AbstractExportFormat exportFormat : exportHandler.getExportFormatList()) {
 					if(exportFormat.getExtension().equals("arxml")
@@ -988,13 +1003,27 @@ public class ZkReportViewer extends Window implements EventListener {
 			String ext = li.getValue().toString();
 			String exportName = li.getLabel();
 			File inputFile = File.createTempFile("Export", "." + ext);
-			exportHandler.exportToFile(exportName, inputFile);
+			AbstractExportFormat exporter = exportHandler.getExporter(exportName);
+			if(exporter == null) {
+				winExportFile.onClose();
+				return;
+			}
+			boolean isOk = exporter.exportTo(inputFile);
 			winExportFile.onClose();
-			AMedia media = null;
-			media = new AMedia(m_reportEngine.getPrintFormat().getName() + "." + ext, null, "application/octet-stream", inputFile, true);
-			Filedownload.save(media, m_reportEngine.getPrintFormat().getName() + "." + ext);
+			if(isOk) {
+				if(exporter.getAction().equals(AbstractExportFormat.EXPORT_FILE)) {
+					AMedia media = null;
+					media = new AMedia(m_reportEngine.getPrintFormat().getName() + "." + ext, null, "application/octet-stream", inputFile, true);
+					Filedownload.save(media, m_reportEngine.getPrintFormat().getName() + "." + ext);
+				} else if(exporter.getAction().equals(AbstractExportFormat.SEND_FILE)) {
+					if(!Util.isEmpty(exporter.getMessage())) {
+						FDialog.info(m_WindowNo, this, "user.info", Msg.parseTranslation(m_ctx, exporter.getMessage()));
+					}
+				}
+			}
 		} catch (Exception e) {
 			log.log(Level.SEVERE, "Failed to export content.", e);
+			FDialog.error(m_WindowNo, this, "ExportError", e.getLocalizedMessage());
 		}
 	}
 	
@@ -1120,7 +1149,7 @@ public class ZkReportViewer extends Window implements EventListener {
 	 */
 	private void cmd_find()
 	{
-		int AD_Table_ID = m_reportEngine.getPrintFormat().getAD_Table_ID();
+		int tableId = m_reportEngine.getPrintFormat().getAD_Table_ID();
 		
 		String title = null; 
 		String tableName = null;
@@ -1133,49 +1162,54 @@ public class ZkReportViewer extends Window implements EventListener {
 			+ " INNER JOIN AD_Table tt ON (t.AD_Table_ID=tt.AD_Table_ID) "
 			+ "WHERE tt.AD_Table_ID=? "
 			+ "ORDER BY w.IsDefault DESC, t.SeqNo, ABS (tt.AD_Window_ID-t.AD_Window_ID)";
-		int AD_Tab_ID = DB.getSQLValue(null, sql, AD_Table_ID);
+		int AD_Tab_ID = DB.getSQLValue(null, sql, tableId);
 		// ASP
 		MClient client = MClient.get(Env.getCtx());
-		String ASPFilter = "";
+		String aSPFilter = "";
 		if (client.isUseASP())
-			ASPFilter =
-				"     AND (   AD_Tab_ID IN ( "
-				// Just ASP subscribed tabs for client "
-				+ "              SELECT t.AD_Tab_ID "
-				+ "                FROM ASP_Tab t, ASP_Window w, ASP_Level l, ASP_ClientLevel cl "
-				+ "               WHERE w.ASP_Level_ID = l.ASP_Level_ID "
-				+ "                 AND cl.AD_Client_ID = " + client.getAD_Client_ID()
-				+ "                 AND cl.ASP_Level_ID = l.ASP_Level_ID "
-				+ "                 AND t.ASP_Window_ID = w.ASP_Window_ID "
-				+ "                 AND t.IsActive = 'Y' "
-				+ "                 AND w.IsActive = 'Y' "
-				+ "                 AND l.IsActive = 'Y' "
-				+ "                 AND cl.IsActive = 'Y' "
-				+ "                 AND t.ASP_Status = 'S') " // Show
-				+ "        OR AD_Tab_ID IN ( "
-				// + show ASP exceptions for client
-				+ "              SELECT AD_Tab_ID "
-				+ "                FROM ASP_ClientException ce "
-				+ "               WHERE ce.AD_Client_ID = " + client.getAD_Client_ID()
-				+ "                 AND ce.IsActive = 'Y' "
-				+ "                 AND ce.AD_Tab_ID IS NOT NULL "
-				+ "                 AND ce.AD_Field_ID IS NULL "
-				+ "                 AND ce.ASP_Status = 'S') " // Show
-				+ "       ) "
-				+ "   AND AD_Tab_ID NOT IN ( "
-				// minus hide ASP exceptions for client
-				+ "          SELECT AD_Tab_ID "
-				+ "            FROM ASP_ClientException ce "
-				+ "           WHERE ce.AD_Client_ID = " + client.getAD_Client_ID()
-				+ "             AND ce.IsActive = 'Y' "
-				+ "             AND ce.AD_Tab_ID IS NOT NULL "
-				+ "             AND ce.AD_Field_ID IS NULL "
-				+ "             AND ce.ASP_Status = 'H')"; // Hide
+			aSPFilter =
+			"     AND (   AD_Tab_ID IN ( "
+			// Just ASP subscribed tabs for client "
+			+ "              SELECT t.AD_Tab_ID "
+			+ "                FROM ASP_Tab t, ASP_Window w, ASP_Level l, ASP_ClientLevel cl "
+			+ "               WHERE w.ASP_Level_ID = l.ASP_Level_ID "
+			+ "                 AND cl.AD_Client_ID = " + client.getAD_Client_ID()
+			+ "                 AND cl.ASP_Level_ID = l.ASP_Level_ID "
+			+ "                 AND t.ASP_Window_ID = w.ASP_Window_ID "
+			+ "                 AND t.IsActive = 'Y' "
+			+ "                 AND w.IsActive = 'Y' "
+			+ "                 AND l.IsActive = 'Y' "
+			+ "                 AND cl.IsActive = 'Y' "
+			+ "                 AND t.ASP_Status = 'S') " // Show
+			+ "OR "
+			//	+ show ASP exceptions for client
+			+ "	EXISTS(SELECT 1 FROM ASP_ClientException ce "
+			+ "				WHERE ce.AD_Tab_ID = t.AD_Tab_ID "
+			+ "				AND ce.AD_Client_ID = " + client.getAD_Client_ID()
+			+ "				AND ce.IsActive = 'Y' "
+			+ "				AND ce.AD_Tab_ID IS NOT NULL "
+			+ "				AND ce.AD_Field_ID IS NULL "
+			+ "				AND ce.ASP_Status = 'S')"	//	Show
+			//	minus hide ASP exceptions for client
+			+ "AND EXISTS(SELECT 1 FROM ASP_ClientException ce "
+			+ "				WHERE ce.AD_Tab_ID = t.AD_Tab_ID "
+			+ "				AND ce.AD_Client_ID = " + client.getAD_Client_ID()
+			+ "				AND ce.IsActive = 'Y' "
+			+ "				AND ce.AD_Tab_ID IS NOT NULL "
+			+ "				AND ce.AD_Field_ID IS NULL "
+			+ "				AND ce.ASP_Status = 'H')"	//	Hide
+			+ " OR EXISTS(SELECT 1 FROM ASP_Level l "
+			+ "					INNER JOIN ASP_ClientLevel cl ON(cl.ASP_Level_ID = l.ASP_Level_ID) "
+			+ "				WHERE cl.AD_Client_ID = " + client.getAD_Client_ID()
+			+ "				AND l.IsActive = 'Y' "
+			+ "				AND cl.IsActive = 'Y' "
+			+ "				AND l.Type = 'C') "	//	Show
+			+ ") ";
 		//
-		sql = "SELECT Name, TableName FROM AD_Tab_v WHERE AD_Tab_ID=? " + ASPFilter;
+		sql = "SELECT t.Name, t.TableName FROM AD_Tab_v t WHERE t.AD_Tab_ID=? " + aSPFilter;
 		if (!Env.isBaseLanguage(Env.getCtx(), "AD_Tab"))
-			sql = "SELECT Name, TableName FROM AD_Tab_vt WHERE AD_Tab_ID=?"
-				+ " AND AD_Language='" + Env.getAD_Language(Env.getCtx()) + "' " + ASPFilter;
+			sql = "SELECT t.Name, t.TableName FROM AD_Tab_vt t WHERE t.AD_Tab_ID=?"
+				+ " AND t.AD_Language='" + Env.getAD_Language(Env.getCtx()) + "' " + aSPFilter;
 		try
 		{
 			PreparedStatement pstmt = DB.prepareStatement(sql, null);
@@ -1213,7 +1247,9 @@ public class ZkReportViewer extends Window implements EventListener {
 				return;
 			}
 		} else {
-            FindWindow find = new FindWindow(m_WindowNo, title, AD_Table_ID, tableName,"", findFields, 1, AD_Tab_ID);
+			String whereExtended = "";
+			whereExtended = m_reportEngine.getWhereExtended();
+            FindWindow find = new FindWindow(m_WindowNo, title, tableId, tableName,whereExtended, findFields, 1, AD_Tab_ID);
             if (!find.isCancel())
             {
             	m_reportEngine.setQuery(find.getQuery());

@@ -33,12 +33,14 @@ import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
@@ -72,6 +74,7 @@ import org.compiere.model.GridTab;
 import org.compiere.model.GridTable;
 import org.compiere.model.GridWindow;
 import org.compiere.model.Lookup;
+import org.compiere.model.MColumn;
 import org.compiere.model.MLookup;
 import org.compiere.model.MMemo;
 import org.compiere.model.MTree;
@@ -157,7 +160,11 @@ import org.compiere.util.Util;
  * @contributor fer_luck @ centuryon  FR [ 1757088 ]
  * 
  * @author mckayERP www.mckayERP.com
- * 				<li> #283 GridController in swing will not set value to null in vetoableChange 
+ * 		<li> BF [ <a href="https://github.com/adempiere/adempiere/issues/281">#283</a> ] GridController in swing will not set value to null in vetoableChange
+ * 		<li> BF [ <a href="https://github.com/adempiere/adempiere/issues/421">#421</a> ] Embedded tab is not updated
+ * @author Carlos Parada, cparada@erpya.com, ERPCyA http://www.erpya.com
+ *  		<a href="https://github.com/adempiere/adempiere/issues/729">
+ *			@see FR [ 729 ] Add Support to Parent Column And Search Column for Tree </a>
  */
 public class GridController extends CPanel
 	implements DataStatusListener, ListSelectionListener, Evaluatee,
@@ -452,17 +459,20 @@ public class GridController extends CPanel
 		}   //  Single-Row
 
 		//  Tree Graphics Layout
-		int treeId = Env.getContextAsInt(Env.getCtx(), m_WindowNo , m_mTab.getTabNo(), "AD_Tree_ID");
+		String treeName = "AD_Tree_ID";
+		int treeId = Env.getContextAsInt(Env.getCtx(), m_WindowNo , m_mTab.getTabNo(), treeName);
 		if (m_mTab.isTreeTab() && treeId == 0)
-			treeId = MTree.getDefaultAD_Tree_ID(Env.getAD_Client_ID(Env.getCtx()), m_mTab.getKeyColumnName());
-			if (treeId > 0)
-				Env.setContext (Env.getCtx(), m_WindowNo, "AD_Tree_ID",  treeId);
+			treeId = MTree.getDefaultTreeIdFromTableId(Env.getAD_Client_ID(Env.getCtx()), m_mTab.getAD_Table_ID());
+			if (treeId > 0) {
+				Env.setContext (Env.getCtx(), m_WindowNo, treeName,  treeId);
+			}
 
 		if (m_mTab.isTreeTab() && treeId > 0)
 		{
-			m_tree = new VTreePanel(m_WindowNo, false, true);
-			if (m_mTab.getTabLevel() == 0)	//	initialize other tabs later
-				m_tree.initTree(treeId);
+			m_tree = new VTreePanel(m_WindowNo, false, !m_mTab.isReadOnly() && !m_mTab.isReadOnlyFromContext());
+			if (m_mTab.getTabLevel() == 0) {	//	initialize other tabs later
+				m_tree.initTree(treeId, m_mTab.getWhereExtended());
+			}
 			m_tree.addPropertyChangeListener(VTreePanel.NODE_SELECTION, this);
 			graphPanel.add(m_tree, BorderLayout.CENTER);
 			splitPane.setDividerLocation(250);
@@ -645,31 +655,20 @@ public class GridController extends CPanel
 		//	Tree to be initiated on second/.. tab
 		if (m_mTab.isTreeTab() && m_mTab.getTabNo() != 0)
 		{
-			String keyColumnName = m_mTab.getKeyColumnName();
 			String treeName = "AD_Tree_ID";
-			if (keyColumnName.startsWith("CM"))
-			{
-				if (keyColumnName.equals("CM_Container_ID"))
-					treeName = "AD_TreeCMC_ID";
-				else if (keyColumnName.equals("CM_CStage_ID"))
-					treeName = "AD_TreeCMS_ID";
-				else if (keyColumnName.equals("CM_Template_ID"))
-					treeName = "AD_TreeCMT_ID";
-				else if (keyColumnName.equals("CM_Media_ID"))
-					treeName = "AD_TreeCMM_ID";
-			}
 			int treeId = Env.getContextAsInt (Env.getCtx(), m_WindowNo, treeName, true);
-			log.config(keyColumnName + " -> " + treeName + " = " + treeId);
+			log.config(treeName + " = " + treeId);
 			if ((m_mTab.isTreeTab() && treeId == 0) || m_mTab.getTabLevel() == 0)
-				treeId = MTree.getDefaultAD_Tree_ID (Env.getAD_Client_ID(Env.getCtx()), m_mTab.getKeyColumnName());
-
+				treeId = MTree.getDefaultTreeIdFromTableId(Env.getAD_Client_ID(Env.getCtx()), m_mTab.getAD_Table_ID());
 			if (treeId == 0) {
-				treeId = MTree.getDefaultAD_Tree_ID(Env.getAD_Client_ID(Env.getCtx()), m_mTab.getKeyColumnName());
+				treeId = MTree.getDefaultTreeIdFromTableId(Env.getAD_Client_ID(Env.getCtx()), m_mTab.getAD_Table_ID());
 				if (treeId > 0 )
-					Env.setContext (Env.getCtx(), m_WindowNo, "AD_Tree_ID",  treeId);
+					Env.setContext (Env.getCtx(), m_WindowNo, treeName,  treeId);
 			}
-			if (m_mTab.isTreeTab() && treeId > 0 &&  m_tree != null && treeId != m_tree.getTreeId())
-				m_tree.initTree (treeId);
+			if (m_mTab.isTreeTab() && treeId > 0 && m_tree != null) {
+				//	Init Tree
+				m_tree.initTree(treeId, m_mTab.getWhereExtended());
+			}
 		}
 
 		activateChilds();
@@ -728,7 +727,11 @@ public class GridController extends CPanel
 		//  Update UI
 		if (!isSingleRow())
 			vTable.autoSize(true);
-		activateChilds();
+		//	Yamel Senih [ 9223372036854775807 ]
+		//	Refresh Tree
+//		activateChilds();
+		activate();
+		//	End Yamel Senih
 	}   //  query
 
 	/*
@@ -758,6 +761,14 @@ public class GridController extends CPanel
 			return;
 		cardLayout.first(cardPanel);
 		m_singleRow = true;
+		
+		// Refresh the data to ensure embedded tabs are updated with
+		// the selected row. Check if the table model is open before 
+		// trying to refresh.  It may not have been opened yet, in 
+		// which case, the refresh will cause an error. See issue #421
+		if (m_mTab.getTableModel().isOpen()) 
+			m_mTab.dataRefresh(m_mTab.getCurrentRow());  // Fix for #421
+		
 		dynamicDisplay(0);
 	//	vPanel.requestFocus();
 	}   //  switchSingleRow
@@ -1145,11 +1156,25 @@ public class GridController extends CPanel
 		boolean summary = IsSummary != null && IsSummary.booleanValue();
 		String imageIndicator = (String)m_mTab.getValue("Action");  //  Menu - Action
 		//
+		//FR [ 729 ]
 		m_tree.nodeChanged(save, keyID, name, description,
-			summary, imageIndicator);
+			summary, imageIndicator,getParent_ID ());
 	}   //  rowChanged
 
 
+	/**
+	 * FR [ 729 ]
+	 * Get Parent From Parent Column For Tree
+	 * @return
+	 */
+	private int getParent_ID () {
+		
+		MTree tree =  MTree.get(Env.getCtx(), m_tree.getTreeId(), null);
+		MColumn parentColumnIDforTree = MColumn.get(Env.getCtx(), tree.getParent_Column_ID());
+		Integer parent_id = (Integer) m_mTab.getValue(parentColumnIDforTree.getColumnName());
+		parent_id = parent_id == null ? 0 : parent_id;
+		return parent_id;
+	}
 	/**************************************************************************
 	 * Save Multiple records - Clone a record and assign new values to each
 	 * clone for a specific column.
@@ -1514,4 +1539,51 @@ public class GridController extends CPanel
 			}
 		}
 	}
+	
+	/**
+	 * Change label for each field if it has context info configured
+	 */
+	public void reloadFieldTrxInfo() {
+		Component[] comps = vPanel.getComponentsRecursive();
+		for (int i = 0; i < comps.length; i++) {
+			Component comp = comps[i];
+			String columnName = comp.getName();
+			if (columnName != null && columnName.length() > 0) {
+				GridField mField = m_mTab.getField(columnName);
+				if (mField != null) {
+					if (mField.isDisplayed(true)) {		//  check context
+						//End Feature Request [1707462]
+						if (comp instanceof VEditor) {
+			                //	Change Context info
+			                reloadFieldTrxInfo(((VEditor) comp));
+						}
+					}
+				}
+			}
+		}   //  all components
+	}
+	
+	/**
+     * Change label for each field if it has context info configured
+     */
+    private void reloadFieldTrxInfo(VEditor editor) {
+    	if(!(editor instanceof JComponent)) {
+    		return;
+    	}
+    	//	
+    	Map<String, String> contextValues = m_mTab.getFieldTrxInfo();
+		if(contextValues == null 
+				|| contextValues.size() == 0) {
+			return;
+		}
+		//	change fields
+		GridField field = editor.getField();
+		//	Get trx info
+		String messageValue = contextValues.get(field.getColumnName());
+		if(Util.isEmpty(messageValue)) {
+			return;
+		}
+		//	Set Context info
+		((JComponent) editor).setToolTipText(messageValue);
+    }
 }   //  GridController

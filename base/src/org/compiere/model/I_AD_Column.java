@@ -22,7 +22,7 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Interface for AD_Column
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0
+ *  @version Release 3.9.3
  */
 public interface I_AD_Column 
 {
@@ -87,6 +87,21 @@ public interface I_AD_Column
 	public int getAD_Element_ID();
 
 	public org.compiere.model.I_AD_Element getAD_Element() throws RuntimeException;
+
+    /** Column name AD_Image_ID */
+    public static final String COLUMNNAME_AD_Image_ID = "AD_Image_ID";
+
+	/** Set Image.
+	  * Image or Icon
+	  */
+	public void setAD_Image_ID (int AD_Image_ID);
+
+	/** Get Image.
+	  * Image or Icon
+	  */
+	public int getAD_Image_ID();
+
+	public org.compiere.model.I_AD_Image getAD_Image() throws RuntimeException;
 
     /** Column name AD_Org_ID */
     public static final String COLUMNNAME_AD_Org_ID = "AD_Org_ID";
@@ -543,6 +558,19 @@ public interface I_AD_Column
 	  */
 	public String getName();
 
+    /** Column name NameOldValue */
+    public static final String COLUMNNAME_NameOldValue = "NameOldValue";
+
+	/** Set Name Old Value.
+	  * The old value of the column or table name.  Used to synchronize name changes with the database.
+	  */
+	public void setNameOldValue (String NameOldValue);
+
+	/** Get Name Old Value.
+	  * The old value of the column or table name.  Used to synchronize name changes with the database.
+	  */
+	public String getNameOldValue();
+
     /** Column name ReadOnlyLogic */
     public static final String COLUMNNAME_ReadOnlyLogic = "ReadOnlyLogic";
 
@@ -555,6 +583,19 @@ public interface I_AD_Column
 	  * Logic to determine if field is read only (applies only when field is read-write)
 	  */
 	public String getReadOnlyLogic();
+
+    /** Column name RequiresSync */
+    public static final String COLUMNNAME_RequiresSync = "RequiresSync";
+
+	/** Set Requires Sync.
+	  * A flag indicating that the associated column or table definition is not synchronized with the database.
+	  */
+	public void setRequiresSync (boolean RequiresSync);
+
+	/** Get Requires Sync.
+	  * A flag indicating that the associated column or table definition is not synchronized with the database.
+	  */
+	public boolean isRequiresSync();
 
     /** Column name SeqNo */
     public static final String COLUMNNAME_SeqNo = "SeqNo";
@@ -570,19 +611,6 @@ public interface I_AD_Column
  lowest number comes first
 	  */
 	public int getSeqNo();
-
-    /** Column name UUID */
-    public static final String COLUMNNAME_UUID = "UUID";
-
-	/** Set Immutable Universally Unique Identifier.
-	  * Immutable Universally Unique Identifier
-	  */
-	public void setUUID (String UUID);
-
-	/** Get Immutable Universally Unique Identifier.
-	  * Immutable Universally Unique Identifier
-	  */
-	public String getUUID();
 
     /** Column name Updated */
     public static final String COLUMNNAME_Updated = "Updated";
@@ -600,20 +628,18 @@ public interface I_AD_Column
 	  */
 	public int getUpdatedBy();
 
-    /** Column name VFormat */
-    public static final String COLUMNNAME_VFormat = "VFormat";
+    /** Column name UUID */
+    public static final String COLUMNNAME_UUID = "UUID";
 
-	/** Set Value Format.
-	  * Format of the value;
- Can contain fixed format elements, Variables: "_lLoOaAcCa09"
+	/** Set Immutable Universally Unique Identifier.
+	  * Immutable Universally Unique Identifier
 	  */
-	public void setVFormat (String VFormat);
+	public void setUUID (String UUID);
 
-	/** Get Value Format.
-	  * Format of the value;
- Can contain fixed format elements, Variables: "_lLoOaAcCa09"
+	/** Get Immutable Universally Unique Identifier.
+	  * Immutable Universally Unique Identifier
 	  */
-	public String getVFormat();
+	public String getUUID();
 
     /** Column name ValueMax */
     public static final String COLUMNNAME_ValueMax = "ValueMax";
@@ -653,4 +679,19 @@ public interface I_AD_Column
 	  * Version of the table definition
 	  */
 	public BigDecimal getVersion();
+
+    /** Column name VFormat */
+    public static final String COLUMNNAME_VFormat = "VFormat";
+
+	/** Set Value Format.
+	  * Format of the value;
+ Can contain fixed format elements, Variables: "_lLoOaAcCa09"
+	  */
+	public void setVFormat (String VFormat);
+
+	/** Get Value Format.
+	  * Format of the value;
+ Can contain fixed format elements, Variables: "_lLoOaAcCa09"
+	  */
+	public String getVFormat();
 }

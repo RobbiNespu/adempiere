@@ -16,21 +16,17 @@
  *****************************************************************************/
 package org.compiere.model;
 
-import java.math.BigDecimal;
-import java.sql.ResultSet;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
 import org.adempiere.engine.CostEngineFactory;
 import org.adempiere.engine.IDocumentLine;
-import org.adempiere.engine.CostingMethodFactory;
-import org.adempiere.engine.ICostingMethod;
-
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
+
+import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.Properties;
 
 /**
  *	Match Invoice (Receipt<>Invoice) Model.
@@ -262,6 +258,9 @@ public class MMatchInv extends X_M_MatchInv implements IDocumentLine
 	 */
 	protected boolean beforeSave (boolean newRecord)
 	{
+		if (getC_DocType_ID()==0)
+			setC_DocType_ID(MDocType.getDocType(MDocType.DOCBASETYPE_MatchInvoice, getAD_Org_ID()));
+		
 		//	Set Trx Date
 		if (getDateTrx() == null)
 			setDateTrx (new Timestamp(System.currentTimeMillis()));
@@ -372,6 +371,7 @@ public class MMatchInv extends X_M_MatchInv implements IDocumentLine
 				else
 				{
 					mPO[i].setC_InvoiceLine_ID(null);
+					mPO[i].setQty(Env.ZERO);
 					mPO[i].saveEx();
 				}
 			}
@@ -424,7 +424,8 @@ public class MMatchInv extends X_M_MatchInv implements IDocumentLine
 					.list();
 					for (MCostDetail cd:cds)
 					{
-						//cd.setDeltaAmt(cd.getAmt().negate());
+						cd.delete(true);
+						/*cd.setDeltaAmt(cd.getAmt().negate());
 						cd.setCostAdjustment(Env.ZERO);
 						cd.setCostAdjustmentLL(Env.ZERO);
 						cd.saveEx();
@@ -440,7 +441,7 @@ public class MMatchInv extends X_M_MatchInv implements IDocumentLine
 							final ICostingMethod method = CostingMethodFactory.get().getCostingMethod(ct.getCostingMethod());
 							method.setCostingMethod(as, trx, this, dimension, Env.ZERO, Env.ZERO, false);
 							//method.processCostDetail(cd);
-						}
+						}*/
 					}
 				}
 			}
@@ -506,7 +507,7 @@ public class MMatchInv extends X_M_MatchInv implements IDocumentLine
 
 	@Override
 	public int getReversalLine_ID() {
-		return 0;
+		return getReversal_ID();
 	}
 
 	@Override
@@ -526,11 +527,6 @@ public class MMatchInv extends X_M_MatchInv implements IDocumentLine
 		return -1;
 	}
 	
-	@Override
-	public int getC_DocType_ID() {
-		return -1;
-	}
-
 	/**
 	 * Reverse Match Invoice
 	 * @param reversalDate
@@ -575,4 +571,14 @@ public class MMatchInv extends X_M_MatchInv implements IDocumentLine
 		}
 		return null;
 	}
+
+
+	@Override
+	public boolean isReversalParent() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+
+
 }	//	MMatchInv

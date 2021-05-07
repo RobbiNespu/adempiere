@@ -24,14 +24,14 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Model for I_BPartner
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0 - $Id$ */
+ *  @version Release 3.9.3 - $Id$ */
 public class X_I_BPartner extends PO implements I_I_BPartner, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170928L;
+	private static final long serialVersionUID = 20200124L;
 
     /** Standard Constructor */
     public X_I_BPartner (Properties ctx, int I_BPartner_ID, String trxName)
@@ -72,6 +72,57 @@ public class X_I_BPartner extends PO implements I_I_BPartner, I_Persistent
         .append(get_ID()).append("]");
       return sb.toString();
     }
+
+	/** Set Account No.
+		@param AccountNo 
+		Account Number
+	  */
+	public void setAccountNo (String AccountNo)
+	{
+		set_Value (COLUMNNAME_AccountNo, AccountNo);
+	}
+
+	/** Get Account No.
+		@return Account Number
+	  */
+	public String getAccountNo () 
+	{
+		return (String)get_Value(COLUMNNAME_AccountNo);
+	}
+
+	/** Set Account City.
+		@param A_City 
+		City or the Credit Card or Account Holder
+	  */
+	public void setA_City (String A_City)
+	{
+		set_Value (COLUMNNAME_A_City, A_City);
+	}
+
+	/** Get Account City.
+		@return City or the Credit Card or Account Holder
+	  */
+	public String getA_City () 
+	{
+		return (String)get_Value(COLUMNNAME_A_City);
+	}
+
+	/** Set Account Country.
+		@param A_Country 
+		Country
+	  */
+	public void setA_Country (String A_Country)
+	{
+		set_Value (COLUMNNAME_A_Country, A_Country);
+	}
+
+	/** Get Account Country.
+		@return Country
+	  */
+	public String getA_Country () 
+	{
+		return (String)get_Value(COLUMNNAME_A_Country);
+	}
 
 	/** Set Address 1.
 		@param Address1 
@@ -169,6 +220,163 @@ public class X_I_BPartner extends PO implements I_I_BPartner, I_Persistent
 		return ii.intValue();
 	}
 
+	/** Set Account EMail.
+		@param A_EMail 
+		Email Address
+	  */
+	public void setA_EMail (String A_EMail)
+	{
+		set_Value (COLUMNNAME_A_EMail, A_EMail);
+	}
+
+	/** Get Account EMail.
+		@return Email Address
+	  */
+	public String getA_EMail () 
+	{
+		return (String)get_Value(COLUMNNAME_A_EMail);
+	}
+
+	/** Set Driver License.
+		@param A_Ident_DL 
+		Payment Identification - Driver License
+	  */
+	public void setA_Ident_DL (String A_Ident_DL)
+	{
+		set_Value (COLUMNNAME_A_Ident_DL, A_Ident_DL);
+	}
+
+	/** Get Driver License.
+		@return Payment Identification - Driver License
+	  */
+	public String getA_Ident_DL () 
+	{
+		return (String)get_Value(COLUMNNAME_A_Ident_DL);
+	}
+
+	/** Set Social Security No.
+		@param A_Ident_SSN 
+		Payment Identification - Social Security No
+	  */
+	public void setA_Ident_SSN (String A_Ident_SSN)
+	{
+		set_Value (COLUMNNAME_A_Ident_SSN, A_Ident_SSN);
+	}
+
+	/** Get Social Security No.
+		@return Payment Identification - Social Security No
+	  */
+	public String getA_Ident_SSN () 
+	{
+		return (String)get_Value(COLUMNNAME_A_Ident_SSN);
+	}
+
+	/** Set Account Name.
+		@param A_Name 
+		Name on Credit Card or Account holder
+	  */
+	public void setA_Name (String A_Name)
+	{
+		set_Value (COLUMNNAME_A_Name, A_Name);
+	}
+
+	/** Get Account Name.
+		@return Name on Credit Card or Account holder
+	  */
+	public String getA_Name () 
+	{
+		return (String)get_Value(COLUMNNAME_A_Name);
+	}
+
+	/** Set Account State.
+		@param A_State 
+		State of the Credit Card or Account holder
+	  */
+	public void setA_State (String A_State)
+	{
+		set_Value (COLUMNNAME_A_State, A_State);
+	}
+
+	/** Get Account State.
+		@return State of the Credit Card or Account holder
+	  */
+	public String getA_State () 
+	{
+		return (String)get_Value(COLUMNNAME_A_State);
+	}
+
+	/** Set Account Street.
+		@param A_Street 
+		Street address of the Credit Card or Account holder
+	  */
+	public void setA_Street (String A_Street)
+	{
+		set_Value (COLUMNNAME_A_Street, A_Street);
+	}
+
+	/** Get Account Street.
+		@return Street address of the Credit Card or Account holder
+	  */
+	public String getA_Street () 
+	{
+		return (String)get_Value(COLUMNNAME_A_Street);
+	}
+
+	/** Set Account Zip/Postal.
+		@param A_Zip 
+		Zip Code of the Credit Card or Account Holder
+	  */
+	public void setA_Zip (String A_Zip)
+	{
+		set_Value (COLUMNNAME_A_Zip, A_Zip);
+	}
+
+	/** Get Account Zip/Postal.
+		@return Zip Code of the Credit Card or Account Holder
+	  */
+	public String getA_Zip () 
+	{
+		return (String)get_Value(COLUMNNAME_A_Zip);
+	}
+
+	/** BankAccountType AD_Reference_ID=216 */
+	public static final int BANKACCOUNTTYPE_AD_Reference_ID=216;
+	/** Checking = C */
+	public static final String BANKACCOUNTTYPE_Checking = "C";
+	/** Savings = S */
+	public static final String BANKACCOUNTTYPE_Savings = "S";
+	/** Set Bank Account Type.
+		@param BankAccountType 
+		Bank Account Type
+	  */
+	public void setBankAccountType (String BankAccountType)
+	{
+
+		set_Value (COLUMNNAME_BankAccountType, BankAccountType);
+	}
+
+	/** Get Bank Account Type.
+		@return Bank Account Type
+	  */
+	public String getBankAccountType () 
+	{
+		return (String)get_Value(COLUMNNAME_BankAccountType);
+	}
+
+	/** Set Bank Name.
+		@param BankName Bank Name	  */
+	public void setBankName (String BankName)
+	{
+		set_Value (COLUMNNAME_BankName, BankName);
+	}
+
+	/** Get Bank Name.
+		@return Bank Name	  */
+	public String getBankName () 
+	{
+		return (String)get_Value(COLUMNNAME_BankName);
+	}
+
 	/** Set Birth City.
 		@param BirthCity 
 		Identifies a City of Birth
@@ -202,6 +410,11 @@ public class X_I_BPartner extends PO implements I_I_BPartner, I_Persistent
 	{
 		return (String)get_Value(COLUMNNAME_BirthCountryCode);
 	}
+
+	public org.compiere.model.I_C_Country getBirthCountry() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_Country)MTable.get(getCtx(), org.compiere.model.I_C_Country.Table_Name)
+			.getPO(getBirthCountry_ID(), get_TrxName());	}
 
 	/** Set Birth Country.
 		@param BirthCountry_ID 
@@ -338,6 +551,34 @@ public class X_I_BPartner extends PO implements I_I_BPartner, I_Persistent
 		return (String)get_Value(COLUMNNAME_BloodGroup);
 	}
 
+	/** BPBankAcctUse AD_Reference_ID=393 */
+	public static final int BPBANKACCTUSE_AD_Reference_ID=393;
+	/** None = N */
+	public static final String BPBANKACCTUSE_None = "N";
+	/** Both = B */
+	public static final String BPBANKACCTUSE_Both = "B";
+	/** Direct Debit = D */
+	public static final String BPBANKACCTUSE_DirectDebit = "D";
+	/** Direct Deposit = T */
+	public static final String BPBANKACCTUSE_DirectDeposit = "T";
+	/** Set Account Usage.
+		@param BPBankAcctUse 
+		Business Partner Bank Account usage
+	  */
+	public void setBPBankAcctUse (String BPBankAcctUse)
+	{
+
+		set_Value (COLUMNNAME_BPBankAcctUse, BPBankAcctUse);
+	}
+
+	/** Get Account Usage.
+		@return Business Partner Bank Account usage
+	  */
+	public String getBPBankAcctUse () 
+	{
+		return (String)get_Value(COLUMNNAME_BPBankAcctUse);
+	}
+
 	/** Set BP Contact Greeting.
 		@param BPContactGreeting 
 		Greeting for Business Partner Contact
@@ -353,6 +594,34 @@ public class X_I_BPartner extends PO implements I_I_BPartner, I_Persistent
 	public String getBPContactGreeting () 
 	{
 		return (String)get_Value(COLUMNNAME_BPContactGreeting);
+	}
+
+	public org.compiere.model.I_C_Bank getC_Bank() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_Bank)MTable.get(getCtx(), org.compiere.model.I_C_Bank.Table_Name)
+			.getPO(getC_Bank_ID(), get_TrxName());	}
+
+	/** Set Bank.
+		@param C_Bank_ID 
+		Bank
+	  */
+	public void setC_Bank_ID (int C_Bank_ID)
+	{
+		if (C_Bank_ID < 1) 
+			set_Value (COLUMNNAME_C_Bank_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_Bank_ID, Integer.valueOf(C_Bank_ID));
+	}
+
+	/** Get Bank.
+		@return Bank
+	  */
+	public int getC_Bank_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_Bank_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
 	}
 
 	public org.compiere.model.I_C_BPartner getC_BPartner() throws RuntimeException
@@ -406,6 +675,34 @@ public class X_I_BPartner extends PO implements I_I_BPartner, I_Persistent
 	public int getC_BPartner_Location_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_C_BPartner_Location_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.compiere.model.I_C_BP_BankAccount getC_BP_BankAccount() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_BP_BankAccount)MTable.get(getCtx(), org.compiere.model.I_C_BP_BankAccount.Table_Name)
+			.getPO(getC_BP_BankAccount_ID(), get_TrxName());	}
+
+	/** Set Partner Bank Account.
+		@param C_BP_BankAccount_ID 
+		Bank Account of the Business Partner
+	  */
+	public void setC_BP_BankAccount_ID (int C_BP_BankAccount_ID)
+	{
+		if (C_BP_BankAccount_ID < 1) 
+			set_Value (COLUMNNAME_C_BP_BankAccount_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_BP_BankAccount_ID, Integer.valueOf(C_BP_BankAccount_ID));
+	}
+
+	/** Get Partner Bank Account.
+		@return Bank Account of the Business Partner
+	  */
+	public int getC_BP_BankAccount_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_BP_BankAccount_ID);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
@@ -580,6 +877,170 @@ public class X_I_BPartner extends PO implements I_I_BPartner, I_Persistent
 		return (String)get_Value(COLUMNNAME_CountryCode);
 	}
 
+	public org.compiere.model.I_C_Project getC_Project() throws RuntimeException
+    {
+		return (org.compiere.model.I_C_Project)MTable.get(getCtx(), org.compiere.model.I_C_Project.Table_Name)
+			.getPO(getC_Project_ID(), get_TrxName());	}
+
+	/** Set Project.
+		@param C_Project_ID 
+		Financial Project
+	  */
+	public void setC_Project_ID (int C_Project_ID)
+	{
+		if (C_Project_ID < 1) 
+			set_Value (COLUMNNAME_C_Project_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_Project_ID, Integer.valueOf(C_Project_ID));
+	}
+
+	/** Get Project.
+		@return Financial Project
+	  */
+	public int getC_Project_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_Project_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	public org.eevolution.model.I_C_ProjectMemberType getC_ProjectMemberType() throws RuntimeException
+    {
+		return (org.eevolution.model.I_C_ProjectMemberType)MTable.get(getCtx(), org.eevolution.model.I_C_ProjectMemberType.Table_Name)
+			.getPO(getC_ProjectMemberType_ID(), get_TrxName());	}
+
+	/** Set Project Member Type.
+		@param C_ProjectMemberType_ID 
+		Define the Member Type for a Project
+	  */
+	public void setC_ProjectMemberType_ID (int C_ProjectMemberType_ID)
+	{
+		if (C_ProjectMemberType_ID < 1) 
+			set_Value (COLUMNNAME_C_ProjectMemberType_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_ProjectMemberType_ID, Integer.valueOf(C_ProjectMemberType_ID));
+	}
+
+	/** Get Project Member Type.
+		@return Define the Member Type for a Project
+	  */
+	public int getC_ProjectMemberType_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_ProjectMemberType_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** Set Exp. Month.
+		@param CreditCardExpMM 
+		Expiry Month
+	  */
+	public void setCreditCardExpMM (int CreditCardExpMM)
+	{
+		set_Value (COLUMNNAME_CreditCardExpMM, Integer.valueOf(CreditCardExpMM));
+	}
+
+	/** Get Exp. Month.
+		@return Expiry Month
+	  */
+	public int getCreditCardExpMM () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_CreditCardExpMM);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** Set Exp. Year.
+		@param CreditCardExpYY 
+		Expiry Year
+	  */
+	public void setCreditCardExpYY (int CreditCardExpYY)
+	{
+		set_Value (COLUMNNAME_CreditCardExpYY, Integer.valueOf(CreditCardExpYY));
+	}
+
+	/** Get Exp. Year.
+		@return Expiry Year
+	  */
+	public int getCreditCardExpYY () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_CreditCardExpYY);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** Set Number.
+		@param CreditCardNumber 
+		Credit Card Number 
+	  */
+	public void setCreditCardNumber (String CreditCardNumber)
+	{
+		set_Value (COLUMNNAME_CreditCardNumber, CreditCardNumber);
+	}
+
+	/** Get Number.
+		@return Credit Card Number 
+	  */
+	public String getCreditCardNumber () 
+	{
+		return (String)get_Value(COLUMNNAME_CreditCardNumber);
+	}
+
+	/** CreditCardType AD_Reference_ID=149 */
+	public static final int CREDITCARDTYPE_AD_Reference_ID=149;
+	/** Amex = A */
+	public static final String CREDITCARDTYPE_Amex = "A";
+	/** MasterCard = M */
+	public static final String CREDITCARDTYPE_MasterCard = "M";
+	/** Visa = V */
+	public static final String CREDITCARDTYPE_Visa = "V";
+	/** ATM = C */
+	public static final String CREDITCARDTYPE_ATM = "C";
+	/** Diners = D */
+	public static final String CREDITCARDTYPE_Diners = "D";
+	/** Discover = N */
+	public static final String CREDITCARDTYPE_Discover = "N";
+	/** Purchase Card = P */
+	public static final String CREDITCARDTYPE_PurchaseCard = "P";
+	/** Set Credit Card.
+		@param CreditCardType 
+		Credit Card (Visa, MC, AmEx)
+	  */
+	public void setCreditCardType (String CreditCardType)
+	{
+
+		set_Value (COLUMNNAME_CreditCardType, CreditCardType);
+	}
+
+	/** Get Credit Card.
+		@return Credit Card (Visa, MC, AmEx)
+	  */
+	public String getCreditCardType () 
+	{
+		return (String)get_Value(COLUMNNAME_CreditCardType);
+	}
+
+	/** Set Verification Code.
+		@param CreditCardVV 
+		Credit Card Verification code on credit card
+	  */
+	public void setCreditCardVV (String CreditCardVV)
+	{
+		set_Value (COLUMNNAME_CreditCardVV, CreditCardVV);
+	}
+
+	/** Get Verification Code.
+		@return Credit Card Verification code on credit card
+	  */
+	public String getCreditCardVV () 
+	{
+		return (String)get_Value(COLUMNNAME_CreditCardVV);
+	}
+
 	public org.compiere.model.I_C_Region getC_Region() throws RuntimeException
     {
 		return (org.compiere.model.I_C_Region)MTable.get(getCtx(), org.compiere.model.I_C_Region.Table_Name)
@@ -731,6 +1192,23 @@ public class X_I_BPartner extends PO implements I_I_BPartner, I_Persistent
 		return (String)get_Value(COLUMNNAME_GroupValue);
 	}
 
+	/** Set IBAN.
+		@param IBAN 
+		International Bank Account Number
+	  */
+	public void setIBAN (String IBAN)
+	{
+		set_Value (COLUMNNAME_IBAN, IBAN);
+	}
+
+	/** Get IBAN.
+		@return International Bank Account Number
+	  */
+	public String getIBAN () 
+	{
+		return (String)get_Value(COLUMNNAME_IBAN);
+	}
+
 	/** Set Import Business Partner.
 		@param I_BPartner_ID Import Business Partner	  */
 	public void setI_BPartner_ID (int I_BPartner_ID)
@@ -809,6 +1287,30 @@ public class X_I_BPartner extends PO implements I_I_BPartner, I_Persistent
 		return (String)get_Value(COLUMNNAME_InterestAreaName);
 	}
 
+	/** Set ACH.
+		@param IsACH 
+		Automatic Clearing House
+	  */
+	public void setIsACH (boolean IsACH)
+	{
+		set_Value (COLUMNNAME_IsACH, Boolean.valueOf(IsACH));
+	}
+
+	/** Get ACH.
+		@return Automatic Clearing House
+	  */
+	public boolean isACH () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsACH);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
 	/** Set Customer.
 		@param IsCustomer 
 		Indicates if this Business Partner is a Customer
@@ -848,6 +1350,54 @@ public class X_I_BPartner extends PO implements I_I_BPartner, I_Persistent
 	public boolean isEmployee () 
 	{
 		Object oo = get_Value(COLUMNNAME_IsEmployee);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	/** Set Is Project Manager.
+		@param IsProjectManager 
+		Is Project Manager
+	  */
+	public void setIsProjectManager (boolean IsProjectManager)
+	{
+		set_Value (COLUMNNAME_IsProjectManager, Boolean.valueOf(IsProjectManager));
+	}
+
+	/** Get Is Project Manager.
+		@return Is Project Manager
+	  */
+	public boolean isProjectManager () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsProjectManager);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	/** Set Is Project Member.
+		@param IsProjectMember 
+		Is Project Member
+	  */
+	public void setIsProjectMember (boolean IsProjectMember)
+	{
+		set_Value (COLUMNNAME_IsProjectMember, Boolean.valueOf(IsProjectMember));
+	}
+
+	/** Get Is Project Member.
+		@return Is Project Member
+	  */
+	public boolean isProjectMember () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsProjectMember);
 		if (oo != null) 
 		{
 			 if (oo instanceof Boolean) 
@@ -1090,6 +1640,92 @@ public class X_I_BPartner extends PO implements I_I_BPartner, I_Persistent
 		return false;
 	}
 
+	/** Set Project Member Type Value.
+		@param ProjectMemberTypeValue 
+		Define the Search Key of Project Member Type
+	  */
+	public void setProjectMemberTypeValue (String ProjectMemberTypeValue)
+	{
+		set_Value (COLUMNNAME_ProjectMemberTypeValue, ProjectMemberTypeValue);
+	}
+
+	/** Get Project Member Type Value.
+		@return Define the Search Key of Project Member Type
+	  */
+	public String getProjectMemberTypeValue () 
+	{
+		return (String)get_Value(COLUMNNAME_ProjectMemberTypeValue);
+	}
+
+	/** Set Project Key.
+		@param ProjectValue 
+		Key of the Project
+	  */
+	public void setProjectValue (String ProjectValue)
+	{
+		set_Value (COLUMNNAME_ProjectValue, ProjectValue);
+	}
+
+	/** Get Project Key.
+		@return Key of the Project
+	  */
+	public String getProjectValue () 
+	{
+		return (String)get_Value(COLUMNNAME_ProjectValue);
+	}
+
+	/** R_AvsAddr AD_Reference_ID=213 */
+	public static final int R_AVSADDR_AD_Reference_ID=213;
+	/** Match = Y */
+	public static final String R_AVSADDR_Match = "Y";
+	/** No Match = N */
+	public static final String R_AVSADDR_NoMatch = "N";
+	/** Unavailable = X */
+	public static final String R_AVSADDR_Unavailable = "X";
+	/** Set Address verified.
+		@param R_AvsAddr 
+		This address has been verified
+	  */
+	public void setR_AvsAddr (String R_AvsAddr)
+	{
+
+		set_Value (COLUMNNAME_R_AvsAddr, R_AvsAddr);
+	}
+
+	/** Get Address verified.
+		@return This address has been verified
+	  */
+	public String getR_AvsAddr () 
+	{
+		return (String)get_Value(COLUMNNAME_R_AvsAddr);
+	}
+
+	/** R_AvsZip AD_Reference_ID=213 */
+	public static final int R_AVSZIP_AD_Reference_ID=213;
+	/** Match = Y */
+	public static final String R_AVSZIP_Match = "Y";
+	/** No Match = N */
+	public static final String R_AVSZIP_NoMatch = "N";
+	/** Unavailable = X */
+	public static final String R_AVSZIP_Unavailable = "X";
+	/** Set Zip verified.
+		@param R_AvsZip 
+		The Zip Code has been verified
+	  */
+	public void setR_AvsZip (String R_AvsZip)
+	{
+
+		set_Value (COLUMNNAME_R_AvsZip, R_AvsZip);
+	}
+
+	/** Get Zip verified.
+		@return The Zip Code has been verified
+	  */
+	public String getR_AvsZip () 
+	{
+		return (String)get_Value(COLUMNNAME_R_AvsZip);
+	}
+
 	/** Set Region.
 		@param RegionName 
 		Name of the Region
@@ -1133,6 +1769,23 @@ public class X_I_BPartner extends PO implements I_I_BPartner, I_Persistent
 		if (ii == null)
 			 return 0;
 		return ii.intValue();
+	}
+
+	/** Set Routing No.
+		@param RoutingNo 
+		Bank Routing Number
+	  */
+	public void setRoutingNo (String RoutingNo)
+	{
+		set_Value (COLUMNNAME_RoutingNo, RoutingNo);
+	}
+
+	/** Get Routing No.
+		@return Bank Routing Number
+	  */
+	public String getRoutingNo () 
+	{
+		return (String)get_Value(COLUMNNAME_RoutingNo);
 	}
 
 	/** Set Tax ID.

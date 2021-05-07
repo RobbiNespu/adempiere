@@ -99,11 +99,10 @@ public final class MPaySelectionCheck extends X_C_PaySelectionCheck
 			paymentRule = PAYMENTRULE_CreditCard;
 		else if (payment.getTenderType().equals(X_C_Payment.TENDERTYPE_DirectDebit))
 			paymentRule = PAYMENTRULE_DirectDebit;
-		else if (payment.getTenderType().equals(X_C_Payment.TENDERTYPE_DirectDeposit))
+		else if (payment.getTenderType().equals(X_C_Payment.TENDERTYPE_DirectDeposit)
+				|| payment.getTenderType().equals(MPayment.TENDERTYPE_MobilePaymentInterbank)
+				|| payment.getTenderType().equals(MPayment.TENDERTYPE_Zelle))
 			paymentRule = PAYMENTRULE_DirectDeposit;
-	//	else if (payment.getTenderType().equals(MPayment.TENDERTYPE_Check))
-	//		PaymentRule = MPaySelectionCheck.PAYMENTRULE_Check;
-		
 		//	Create new PaySelection
 		MPaySelection paySelection = new MPaySelection(ctx, 0, trxName);
 		paySelection.setC_DocType_ID();
@@ -157,11 +156,15 @@ public final class MPaySelectionCheck extends X_C_PaySelectionCheck
 			}
 			//	For all
 			paySelectionLine.setIsPrepayment(payment.isPrepayment());
-			//	
+			//	calculate open amount from payment amount
+			BigDecimal openAmount = Env.ZERO;
+			if(payment.isOverUnderPayment()) {
+				openAmount = payment.getPayAmt().add(payment.getDiscountAmt()).add(payment.getOverUnderAmt());
+			}
 			paySelectionLine.setC_BPartner_ID(payment.getC_BPartner_ID());
 			paySelectionLine.setIsSOTrx (payment.isReceipt());
 			paySelectionLine.setAmtSource(payment.getPayAmt());
-			paySelectionLine.setOpenAmt(payment.getPayAmt().add(payment.getDiscountAmt()));
+			paySelectionLine.setOpenAmt(openAmount);
 			paySelectionLine.setPayAmt (payment.getPayAmt());
 			paySelectionLine.setDiscountAmt(payment.getDiscountAmt());
 			paySelectionLine.setDifferenceAmt (Env.ZERO);
@@ -303,96 +306,128 @@ public final class MPaySelectionCheck extends X_C_PaySelectionCheck
 			//	Existing Payment
 			if (paySelectionCheck.getC_Payment_ID() != 0
 					&& (payment.getDocStatus().equals(DocAction.STATUS_Completed)
-								|| payment.getDocStatus().equals(DocAction.STATUS_Closed)))
-			{
+								|| payment.getDocStatus().equals(DocAction.STATUS_Closed))) {
 				//	Update check number
-				if (paySelectionCheck.getPaymentRule().equals(PAYMENTRULE_Check))
-				{
+				if (paySelectionCheck.getPaymentRule().equals(PAYMENTRULE_Check)) {
 					payment.setCheckNo(paySelectionCheck.getDocumentNo());
-					payment.saveEx();
+				} else {
+					payment.setDocumentNo(paySelectionCheck.getDocumentNo());
 				}
-			}
-			else	//	New Payment
-			{
+				payment.saveEx();
+			} else {	//	New Payment
+				I_C_PaySelection paySelection =  paySelectionCheck.getC_PaySelection();
+				MDocType documentType = MDocType.get(paySelectionCheck.getCtx(), paySelection.getC_DocType_ID());
+				int docTypeId = documentType.getC_DocTypePayment_ID();
+				//	
 				payment = new MPayment(paySelectionCheck.getCtx(), 0, paySelectionCheck.get_TrxName());
 				payment.setAD_Org_ID(paySelectionCheck.getAD_Org_ID());
-				//
-				if (paySelectionCheck.getPaymentRule().equals(PAYMENTRULE_Check))
+				if (paySelectionCheck.getPaymentRule().equals(PAYMENTRULE_Check)) {
 					payment.setBankCheck (paySelectionCheck.getParent().getC_BankAccount_ID(), false, paySelectionCheck.getDocumentNo());
-				else if (paySelectionCheck.getPaymentRule().equals(PAYMENTRULE_CreditCard))
+				} else if (paySelectionCheck.getPaymentRule().equals(PAYMENTRULE_CreditCard)) {
 					payment.setTenderType(X_C_Payment.TENDERTYPE_CreditCard);
-				else if (paySelectionCheck.getPaymentRule().equals(PAYMENTRULE_DirectDeposit)
-					|| paySelectionCheck.getPaymentRule().equals(PAYMENTRULE_DirectDebit))
+				} else if (paySelectionCheck.getPaymentRule().equals(PAYMENTRULE_DirectDeposit)
+					|| paySelectionCheck.getPaymentRule().equals(PAYMENTRULE_DirectDebit)) {
 					payment.setBankACH(paySelectionCheck);
-				else
-				{
+				} else {
 					logger.log(Level.SEVERE, "Unsupported Payment Rule=" + paySelectionCheck.getPaymentRule());
 					throw  new AdempiereException("Unsupported Payment Rule=" + paySelectionCheck.getPaymentRule());
 					//continue;
 				}
 				payment.setTrxType(X_C_Payment.TRXTYPE_CreditPayment);
+				if (docTypeId > 0) {
+					payment.setC_DocType_ID(docTypeId);
+				}
 				payment.setAmount(paySelectionCheck.getParent().getC_Currency_ID(), paySelectionCheck.getPayAmt());
 				payment.setDiscountAmt(paySelectionCheck.getDiscountAmt());
 				payment.setDateTrx(paySelectionCheck.getParent().getPayDate());
 				payment.setDateAcct(payment.getDateTrx()); // globalqss [ 2030685 ]
 				payment.setC_BPartner_ID(paySelectionCheck.getC_BPartner_ID());
+				if (!paySelectionCheck.getPaymentRule().equals(PAYMENTRULE_Check)) {
+					payment.setDocumentNo(paySelectionCheck.getDocumentNo());
+				}
 				//	Link to Batch
-				if (batch != null)
-				{
+				if (batch != null) {
 					if (batch.getC_PaymentBatch_ID() == 0)
 						batch.saveEx();	//	new
 					payment.setC_PaymentBatch_ID(batch.getC_PaymentBatch_ID());
 				}
-				//	Link to Invoice
 				List<MPaySelectionLine> paySelectionLines = paySelectionCheck.getPaySelectionLinesAsList(false);
 				logger.fine("confirmPrint - " + paySelectionCheck + " (#SelectionLines=" + (paySelectionLines != null? paySelectionLines.size(): 0) + ")");
-				if (paySelectionCheck.getQty() == 1 && paySelectionLines != null && paySelectionLines.size() == 1)
-				{
-					MPaySelectionLine paySelectionLine = paySelectionLines.get(0);
-					logger.fine("Map to Invoice " + paySelectionLine);
-					//
-					//	FR [ 297 ]
-					//	For Order
-					if(paySelectionLine.getC_Order_ID() != 0) {
-						payment.setC_Order_ID (paySelectionLine.getC_Order_ID());
+				//	For bank Transfer
+				if(documentType.isBankTransfer()) {
+					payment.setC_Invoice_ID(-1);
+					payment.setC_Order_ID(-1);
+					payment.setTenderType(MPayment.TENDERTYPE_DirectDeposit);
+					payment.saveEx();
+					if(paySelectionLines != null) {
+						for(MPaySelectionLine line : paySelectionLines) {
+							if(line.getC_BankAccountTo_ID() == 0) {
+								throw new AdempiereException("@C_BankAccountTo_ID@ @NotFound@");
+							}
+							//	For all
+							MPayment receiptAccount = new MPayment(paySelectionCheck.getCtx(), 0, paySelectionCheck.get_TrxName());
+							PO.copyValues(payment, receiptAccount);
+							//	Set default values
+							receiptAccount.setC_BankAccount_ID(line.getC_BankAccountTo_ID());
+							receiptAccount.setIsReceipt(!payment.isReceipt());
+							receiptAccount.setC_DocType_ID(!payment.isReceipt());
+							receiptAccount.setRelatedPayment_ID(payment.getC_Payment_ID());
+							receiptAccount.setTenderType(MPayment.TENDERTYPE_DirectDeposit);
+							receiptAccount.setC_Charge_ID(line.getC_Charge_ID());
+							receiptAccount.saveEx();
+							receiptAccount.processIt(DocAction.ACTION_Complete);
+							receiptAccount.saveEx();
+							payment.setRelatedPayment_ID(receiptAccount.getC_Payment_ID());
+							payment.setC_Charge_ID(receiptAccount.getC_Charge_ID());
+							payment.saveEx();
+						}
 					}
-					//	For Charge
-					if(paySelectionLine.getC_Charge_ID() != 0) {
-						payment.setC_Charge_ID (paySelectionLine.getC_Charge_ID());
-					}
-					//	For Conversion Type
-					if(paySelectionLine.getC_ConversionType_ID() != 0) {
-						payment.setC_ConversionType_ID(paySelectionLine.getC_ConversionType_ID());
-					}
-					//	For Invoice
-					if(paySelectionLine.getC_Invoice_ID() != 0) {
-						payment.setC_Invoice_ID (paySelectionLine.getC_Invoice_ID());
-					}
-					//	For all
-					payment.setIsPrepayment(paySelectionLine.isPrepayment());
-					//	
-					payment.setDiscountAmt (paySelectionLine.getDiscountAmt());
-					payment.setWriteOffAmt(paySelectionLine.getDifferenceAmt());
-					BigDecimal overUnder = paySelectionLine.getOpenAmt().subtract(paySelectionLine.getPayAmt())
-						.subtract(paySelectionLine.getDiscountAmt()).subtract(paySelectionLine.getDifferenceAmt());
-					payment.setOverUnderAmt(overUnder);
 				} else {
-					payment.setDiscountAmt(Env.ZERO);
+					//	Link to Invoice
+					if (paySelectionCheck.getQty() == 1 && paySelectionLines != null && paySelectionLines.size() == 1) {
+						MPaySelectionLine paySelectionLine = paySelectionLines.get(0);
+						logger.fine("Map to Invoice " + paySelectionLine);
+						//
+						//	FR [ 297 ]
+						//	For Order
+						if(paySelectionLine.getC_Order_ID() != 0) {
+							payment.setC_Order_ID (paySelectionLine.getC_Order_ID());
+						}
+						//	For Charge
+						if (paySelectionLine.getC_Charge_ID() != 0) {
+							payment.setC_Charge_ID(paySelectionLine.getC_Charge_ID());
+							if (paySelectionLine.getHR_Movement_ID() > 0) {
+								payment.setC_Project_ID(paySelectionLine.getHRMovement().getC_Project_ID());
+							}
+						}
+						//	For Conversion Type
+						if(paySelectionLine.getC_ConversionType_ID() != 0) {
+							payment.setC_ConversionType_ID(paySelectionLine.getC_ConversionType_ID());
+						}
+						//	For Invoice
+						if(paySelectionLine.getC_Invoice_ID() != 0) {
+							payment.setC_Invoice_ID (paySelectionLine.getC_Invoice_ID());
+						}
+						//	For all
+						payment.setIsPrepayment(paySelectionLine.isPrepayment());
+						//	
+						payment.setDiscountAmt (paySelectionLine.getDiscountAmt());
+						payment.setWriteOffAmt(paySelectionLine.getDifferenceAmt());
+						BigDecimal overUnder = paySelectionLine.getOpenAmt().subtract(paySelectionLine.getPayAmt())
+							.subtract(paySelectionLine.getDiscountAmt()).subtract(paySelectionLine.getDifferenceAmt());
+						payment.setOverUnderAmt(overUnder);
+					} else {
+						payment.setDiscountAmt(Env.ZERO);
+					}
 				}
 				payment.setWriteOffAmt(Env.ZERO);
 				payment.saveEx();
-				//
-				int paymentIc = payment.get_ID();
-				if (paymentIc < 1)
-					logger.log(Level.SEVERE, "Payment not created=" + paySelectionCheck);
-				else
-				{
-					paySelectionCheck.setC_Payment_ID (paymentIc);
-					paySelectionCheck.saveEx();	//	Payment process needs it
-					//	Should start WF
-					payment.processIt(DocAction.ACTION_Complete);
-					payment.saveEx();
-				}
+				//	
+				paySelectionCheck.setC_Payment_ID (payment.getC_Payment_ID());
+				paySelectionCheck.saveEx();	//	Payment process needs it
+				//	Should start WF
+				payment.processIt(DocAction.ACTION_Complete);
+				payment.saveEx();
 			}	//	new Payment
 
 			//	Get Check Document No
@@ -469,25 +504,32 @@ public final class MPaySelectionCheck extends X_C_PaySelectionCheck
 		if(paymentRule == null) {
 			paymentRule = paySelectionLine.getPaymentRule();
 		}
+		boolean isPayrollAccount = paySelectionLine.getHR_Movement_ID() > 0;
 		//	Add default account
 		if(paySelectionLine.getC_BP_BankAccount_ID() != 0) {
 			setC_BP_BankAccount_ID(paySelectionLine.getC_BP_BankAccount_ID());
-		} 
-		else if (X_C_Order.PAYMENTRULE_DirectDebit.equals(paymentRule))
-		{
+		} else if (X_C_Order.PAYMENTRULE_DirectDebit.equals(paymentRule)) {
 			List<MBPBankAccount> partnerBankAccounts = MBPBankAccount.getByPartner(paySelectionLine.getCtx(), partnerId);
 			partnerBankAccounts.stream()
 					.filter(partnerBankAccount -> partnerBankAccount != null && partnerBankAccount.isDirectDebit())
+					.filter(employeeAccount -> employeeAccount.isPayrollAccount() || !isPayrollAccount)
 					.findFirst()
-					.ifPresent( partnerBankAccount -> setC_BP_BankAccount_ID(partnerBankAccount.getC_BP_BankAccount_ID()));
-		}
-		else if (X_C_Order.PAYMENTRULE_DirectDeposit.equals(paymentRule))
-		{
+					.ifPresent( partnerBankAccount -> {
+						setC_BP_BankAccount_ID(partnerBankAccount.getC_BP_BankAccount_ID());
+						paySelectionLine.setC_BP_BankAccount_ID(partnerBankAccount.getC_BP_BankAccount_ID());
+						paySelectionLine.saveEx();
+					});
+		} else if (X_C_Order.PAYMENTRULE_DirectDeposit.equals(paymentRule)) {
 			List<MBPBankAccount> partnerBankAccounts = MBPBankAccount.getByPartner(paySelectionLine.getCtx(), partnerId);
 			partnerBankAccounts.stream()
 					.filter(partnerBankAccount -> partnerBankAccount != null && partnerBankAccount.isDirectDeposit())
+					.filter(employeeAccount -> employeeAccount.isPayrollAccount() || !isPayrollAccount)
 					.findFirst()
-					.ifPresent( partnerBankAccount -> setC_BP_BankAccount_ID(partnerBankAccount.getC_BP_BankAccount_ID()));
+					.ifPresent( partnerBankAccount -> {
+						setC_BP_BankAccount_ID(partnerBankAccount.getC_BP_BankAccount_ID());
+						paySelectionLine.setC_BP_BankAccount_ID(partnerBankAccount.getC_BP_BankAccount_ID());
+						paySelectionLine.saveEx();
+					});
 		}
 		setPaymentRule (paymentRule);
 		//

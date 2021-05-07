@@ -69,6 +69,7 @@ import org.compiere.util.Splash;
 import org.eevolution.grid.Browser;
 import org.eevolution.grid.BrowserSearch;
 import org.eevolution.grid.VBrowserTable;
+import org.spin.util.ASPUtil;
 
 /**
  * UI Browser
@@ -668,18 +669,21 @@ public class VBrowser extends Browser implements ActionListener, ListSelectionLi
 			//
 			m_frame.setCursor(Cursor.getDefaultCursor());
 			setStatusLine(
-					Integer.toString(no) + " "
+					Integer.toString(row) + " "
 							+ Msg.getMsg(Env.getCtx(), "SearchRows_EnterQuery"),
 					false);
 			setStatusDB(Integer.toString(no));
-			if (no == 0)
+			if (no == 0) {
 				log.fine(dataSql);
-			else {
+			} else {
 				detail.getSelectionModel().setSelectionInterval(0, 0);
 				detail.requestFocus();
 			}
+			
 			isAllSelected = isSelectedByDefault();
-			selectedRows(detail);
+			if(isAllSelected) {
+				selectedRows(detail);
+			}
 			//	Set Collapsed
 			if(row > 0)
 				collapsibleSearch.setCollapsed(isCollapsibleByDefault());
@@ -712,7 +716,6 @@ public class VBrowser extends Browser implements ActionListener, ListSelectionLi
 		login.batchLogin();
 
 		Properties m_ctx = Env.getCtx();
-		MBrowse browse = new MBrowse(m_ctx, 50025, null);
 		FormFrame frame = new FormFrame(0);
 		boolean modal = true;
 		int WindowNo = 0;
@@ -720,7 +723,7 @@ public class VBrowser extends Browser implements ActionListener, ListSelectionLi
 		String keyColumn = "";
 		boolean multiSelection = true;
 		String whereClause = "";
-		VBrowser browser = new VBrowser(frame, modal, WindowNo, value, browse,
+		VBrowser browser = new VBrowser(frame, modal, WindowNo, value, ASPUtil.getInstance().getBrowse(50025),
 				keyColumn, multiSelection, whereClause, true);
 		// browser.setPreferredSize(getPreferredSize ());
 		browser.getFrame().setVisible(true);
@@ -810,7 +813,8 @@ public class VBrowser extends Browser implements ActionListener, ListSelectionLi
 
 	@Override
 	public void unlockUI(ProcessInfo pi) {
-		
+		processParameterPanel.setProcessInfo(pi);
+		processParameterPanel.openResult();
 	}
 	
 	@Override

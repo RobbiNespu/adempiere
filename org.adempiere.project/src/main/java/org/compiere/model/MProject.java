@@ -28,6 +28,7 @@ import org.compiere.util.CCache;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 import org.eevolution.model.MProjectMember;
+import org.eevolution.model.X_I_Project;
 
 /**
  * 	Project Model
@@ -47,19 +48,20 @@ public class MProject extends X_C_Project
 	 * Ge project by Id
 	 * @param ctx
 	 * @param projectId
+	 * @param trxName
 	 * @return
 	 */
-	public static MProject getById(Properties ctx, Integer projectId) {
+	public static MProject getById(Properties ctx, Integer projectId, String trxName) {
 		if (projectId <= 0)
 			return null;
 		if (projectCacheIds.size() == 0)
-			getAll(ctx, true);
+			getAll(ctx, true, trxName);
 
 		MProject project = projectCacheIds.get(projectId);
 		if (project != null)
 			return project;
 
-		project =  new Query(ctx , Table_Name , COLUMNNAME_C_Project_ID + "=?" , null)
+		project =  new Query(ctx , Table_Name , COLUMNNAME_C_Project_ID + "=?" , trxName)
 				.setClient_ID()
 				.setParameters(projectId)
 				.first();
@@ -77,13 +79,14 @@ public class MProject extends X_C_Project
 	 * Get project by Search Key
 	 * @param ctx
 	 * @param value
+	 * @param trxName
 	 * @return
 	 */
-	public static MProject getByValue(Properties ctx, String value) {
+	public static MProject getByValue(Properties ctx, String value, String trxName) {
 		if (value == null)
 			return null;
 		if (projectCacheValues.size() == 0)
-			getAll(ctx, true);
+			getAll(ctx, true, trxName);
 
 		int clientId = Env.getAD_Client_ID(ctx);
 		String key = clientId + "#" + value;
@@ -91,7 +94,7 @@ public class MProject extends X_C_Project
 		if (project != null && project.get_ID() > 0)
 			return project;
 
-		project = new Query(ctx, Table_Name, COLUMNNAME_Value + "=?", null)
+		project = new Query(ctx, Table_Name, COLUMNNAME_Value + "=?", trxName)
 				.setClient_ID()
 				.setParameters(value)
 				.first();
@@ -106,12 +109,13 @@ public class MProject extends X_C_Project
 	 * Get all project and create cache
 	 * @param ctx
 	 * @param resetCache
+	 * @param trxName
 	 * @return
 	 */
-	public static List<MProject> getAll(Properties ctx, boolean resetCache) {
+	public static List<MProject> getAll(Properties ctx, boolean resetCache, String trxName) {
 		List<MProject> projectList;
 		if (resetCache || projectCacheIds.size() > 0) {
-			projectList = new Query(Env.getCtx(), Table_Name, null, null)
+			projectList = new Query(Env.getCtx(), Table_Name, null, trxName)
 					.setClient_ID()
 					.setOrderBy(COLUMNNAME_Name)
 					.list();
@@ -205,6 +209,64 @@ public class MProject extends X_C_Project
 			setProcessed (false);
 		}
 	}	//	MProject
+
+	public MProject (X_I_Project projectImport)
+	{
+		super(projectImport.getCtx() , 0 , projectImport.get_TrxName());
+		setAD_Org_ID(projectImport.getAD_Org_ID());
+		setM_PriceList_Version_ID(projectImport.getM_PriceList_Version_ID());
+		setAD_Color_ID(projectImport.getAD_Color_ID());
+		setAD_OrgTrx_ID(projectImport.getAD_OrgTrx_ID());
+		setAD_User_ID(projectImport.getAD_User_ID());
+		setC_Activity_ID(projectImport.getC_Activity_ID());
+		setC_BPartner_ID(projectImport.getC_BPartner_ID());
+		setC_BPartner_Location_ID(projectImport.getC_BPartner_Location_ID());
+		setC_BPartnerSR_ID(projectImport.getC_BPartnerSR_ID());
+		setC_Campaign_ID(projectImport.getC_Campaign_ID());
+		setC_Currency_ID(projectImport.getC_Currency_ID());
+		setC_PaymentTerm_ID(projectImport.getC_PaymentTerm_ID());
+		setC_PaymentTerm_ID(projectImport.getC_PaymentTerm_ID());
+		setC_ProjectCategory_ID(projectImport.getC_ProjectCategory_ID());
+		setC_ProjectClass_ID(projectImport.getC_ProjectClass_ID());
+		setC_ProjectGroup_ID(projectImport.getC_ProjectGroup_ID());
+		setC_ProjectStatus_ID(projectImport.getC_ProjectStatus_ID());
+		setC_SalesRegion_ID(projectImport.getC_SalesRegion_ID());
+		setCommittedAmt(projectImport.getCommittedAmt());
+		setCommittedQty(projectImport.getCommittedQty());
+		setDateContract(projectImport.getDateContract());
+		setDateDeadline(projectImport.getDateDeadline());
+		setDateFinish(projectImport.getDateFinish());
+		setDateStart(projectImport.getDateStart());
+		setDateFinishSchedule(projectImport.getDateFinishSchedule());
+		setDateStartSchedule(projectImport.getDateStartSchedule());
+		setDescription(projectImport.getDescription());
+		setDurationUnit(projectImport.getDurationUnit());
+		setInvoicedAmt(projectImport.getInvoicedAmt());
+		setInvoicedQty(projectImport.getInvoicedQty());
+		setIsCommitCeiling(projectImport.isCommitCeiling());
+		setIsCommitment(isCommitment());
+		setIsIndefinite(projectImport.isIndefinite());
+		setIsSummary(projectImport.isSummary());
+		setM_Warehouse_ID(projectImport.getM_Warehouse_ID());
+		setName(projectImport.getName());
+		setNote(projectImport.getNote());
+		setPlannedAmt(projectImport.getPlannedAmt());
+		setPlannedMarginAmt(projectImport.getPlannedMarginAmt());
+		setPlannedQty(projectImport.getPlannedQty());
+		setPOReference(projectImport.getPOReference());
+		setPriorityRule(projectImport.getPriorityRule());
+		setProjectBalanceAmt(projectImport.getProjectBalanceAmt());
+		setProjectLineLevel(projectImport.getProjectLineLevel());
+		setProjectManager_ID(projectImport.getProjectManager_ID());
+		setProjInvoiceRule(projectImport.getProjInvoiceRule());
+		setSalesRep_ID(projectImport.getSalesRep_ID());
+		setUser1_ID(projectImport.getUser1_ID());
+		setUser2_ID(projectImport.getUser2_ID());
+		setUser3_ID(projectImport.getUser3_ID());
+		setUser4_ID(projectImport.getUser4_ID());
+		setValue(projectImport.getValue());
+	}
+
 
 	/**
 	 * 	Load Constructor
@@ -478,6 +540,8 @@ public class MProject extends X_C_Project
 			List<MRequest> requests =  standardRequestType.createStandardRequest(this);
 			requests.stream().forEach(request -> {
 				request.setC_Project_ID(getC_Project_ID());
+				request.setDateStartPlan(getDateStartSchedule());
+				request.setDateCompletePlan(getDateFinishSchedule());
 				request.saveEx();
 			});
 		}
@@ -515,7 +579,6 @@ public class MProject extends X_C_Project
 		if (newRecord && success)
 		{
 			insert_Accounting("C_Project_Acct", "C_AcctSchema_Default", null);
-			insert_Tree(MTree_Base.TREETYPE_Project);
 		}
 
 		//	Value/Name change
@@ -541,18 +604,6 @@ public class MProject extends X_C_Project
 	{
 		return delete_Accounting("C_Project_Acct"); 
 	}	//	beforeDelete
-
-	/**
-	 * 	After Delete
-	 *	@param success
-	 *	@return deleted
-	 */
-	protected boolean afterDelete (boolean success)
-	{
-		if (success)
-			delete_Tree(MTree_Base.TREETYPE_Project);
-		return success;
-	}	//	afterDelete
 	
 	/**
 	 * 	Return the Invoices Generated for this Project

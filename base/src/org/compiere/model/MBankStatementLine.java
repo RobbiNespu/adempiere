@@ -20,9 +20,13 @@ package org.compiere.model;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicReference;
 
+import org.adempiere.exceptions.AdempiereException;
 import org.compiere.util.DB;
+import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
  
@@ -38,6 +42,13 @@ import org.compiere.util.Msg;
  * @author Teo Sarca, SC ARHIPAC SERVICE SRL
  * 			<li>BF [ 1896880 ] Unlink Payment if TrxAmt is zero
  * 			<li>BF [ 1896885 ] BS Line: don't update header if after save/delete fails
+ * @author Yamel Senih, ysenih@erpya.com , http://www.erpya.com
+ *  	<li> FR [ 1699 ] Add support view for Bank Statement
+ *  	<li> FR [ 1699 ] Add conversion for bank statement helper method #2403
+ *  	@see https://github.com/adempiere/adempiere/issues/1699
+ * @author Víctor Pérez Juárez Email: victor.perez@e-evolution.com, http://www.e-evolution.com , http://github.com/e-Evolution+
+ * 		<li> FR [ 1699 ] Add functional programming #2403
+ *      <a href="https://github.com/adempiere/adempiere/pull/2403">
  */
  public class MBankStatementLine extends X_C_BankStatementLine
  {
@@ -93,6 +104,58 @@ import org.compiere.util.Msg;
 		setC_BankStatement_ID(statement.getC_BankStatement_ID());
 		setStatementLineDate(statement.getStatementDate());
 	}	//	MBankStatementLine
+	
+	/**
+	 * Create from import
+	 * @param statement
+	 * @param imp
+	 */
+	public MBankStatementLine(MBankStatement statement, X_I_BankStatement imp, int lineNo) {
+		this(statement);
+		//	Parent values
+		MBankAccount account = MBankAccount.get(getCtx(), statement.getC_BankAccount_ID());
+		if(account == null) {
+			throw new AdempiereException("@C_BankAccount_ID@ @NotFound@");
+		}
+		//	set import values
+		setReferenceNo(imp.getReferenceNo());
+		setDescription(imp.getLineDescription());
+		setStatementLineDate(imp.getStatementLineDate());
+		setDateAcct(imp.getStatementLineDate());
+		if(imp.getValutaDate() != null) {
+			setValutaDate(imp.getValutaDate());
+		}
+		setIsReversal(imp.isReversal());
+		if(imp.getC_Currency_ID() != 0) {
+			setC_Currency_ID(imp.getC_Currency_ID());
+		} else {
+			setC_Currency_ID(account.getC_Currency_ID());
+		}
+		setTrxAmt(imp.getTrxAmt());
+		setStmtAmt(imp.getStmtAmt());
+		if (imp.getC_Charge_ID() != 0) {
+			setC_Charge_ID(imp.getC_Charge_ID());
+		}
+		setInterestAmt(imp.getInterestAmt());
+		setChargeAmt(imp.getChargeAmt());
+		setMemo(imp.getMemo());
+		if (imp.getC_Payment_ID() != 0) {
+			setC_Payment_ID(imp.getC_Payment_ID());
+		}
+		//	Copy statement line reference data
+		setEftTrxID(imp.getEftTrxID());
+		setEftTrxType(imp.getEftTrxType());
+		setEftCheckNo(imp.getEftCheckNo());
+		setEftReference(imp.getEftReference());
+		setEftMemo(imp.getEftMemo());
+		setEftPayee(imp.getEftPayee());
+		setEftPayeeAccount(imp.getEftPayeeAccount());
+		setEftStatementLineDate(imp.getEftStatementLineDate());
+		setEftValutaDate(imp.getEftValutaDate());
+		setEftCurrency(imp.getEftCurrency());
+		setEftAmt(imp.getEftAmt());
+		setLine(lineNo);
+	}
 
 	/**
 	 * 	Parent Constructor
@@ -121,22 +184,42 @@ import org.compiere.util.Msg;
 	 * 	Set Payment
 	 *	@param payment payment
 	 */
-	public void setPayment (MPayment payment)
-	{
-		setC_Payment_ID (payment.getC_Payment_ID());
-		setC_Currency_ID (payment.getC_Currency_ID());
-		//
-		BigDecimal amt = payment.getPayAmt(true); 
-		BigDecimal chargeAmt = getChargeAmt();
-		if (chargeAmt == null)
-			chargeAmt = Env.ZERO;
-		BigDecimal interestAmt = getInterestAmt();
-		if (interestAmt == null)
-			interestAmt = Env.ZERO;
-		setTrxAmt(amt);
-		setStmtAmt(amt.add(chargeAmt).add(interestAmt));
-		//
-		setDescription(payment.getDescription());
+	public void setPayment (MPayment payment) {
+		AtomicReference<BigDecimal> paymentAmount = new AtomicReference<BigDecimal>(payment.getPayAmt(true));
+        //	
+		MBankAccount bankAccount = MBankAccount.get(getCtx(), getParent().getC_BankAccount_ID());
+        if(bankAccount.getC_Currency_ID() != payment.getC_Currency_ID()) {
+            // Get Currency Info
+            MCurrency currency = MCurrency.get(getCtx(), payment.getC_Currency_ID());
+            MCurrency currencyTo = MCurrency.get (getCtx(), bankAccount.getC_Currency_ID());
+            Timestamp conversionDate = getParent().getStatementDate();
+            StringBuffer errorMassage = new StringBuffer()
+            .append(" @C_Conversion_Rate_ID@ @From@ @C_Currency_ID@ ")
+            .append(currency.getISO_Code())
+            .append(" @to@ @C_Currency_ID@ ")
+            .append(currencyTo.getISO_Code())
+            .append(" @StatementDate@ ").append(DisplayType.getDateFormat(DisplayType.Date).format(conversionDate)).append(" @NotFound@");
+            // Get Currency Rate
+            BigDecimal currencyRate = Optional.ofNullable(MConversionRate.getRate (payment.getC_Currency_ID(),
+                    bankAccount.getC_Currency_ID(), conversionDate, payment.getC_ConversionType_ID(), payment.getAD_Client_ID(),
+                    payment.getAD_Org_ID()))
+            		.orElseThrow(() -> new AdempiereException(errorMassage.toString()));
+            //	Set convert amount
+			paymentAmount.updateAndGet(payAmount -> payAmount.multiply(currencyRate).setScale(currencyTo.getStdPrecision(), BigDecimal.ROUND_HALF_UP));
+        }
+        setC_Payment_ID (payment.getC_Payment_ID());
+        setC_Currency_ID (bankAccount.getC_Currency_ID());
+
+        BigDecimal chargeAmt = getChargeAmt();
+        if (chargeAmt == null)
+            chargeAmt = Env.ZERO;
+        BigDecimal interestAmt = getInterestAmt();
+        if (interestAmt == null)
+            interestAmt = Env.ZERO;
+        setTrxAmt(paymentAmount.get());
+        setStmtAmt(paymentAmount.get().add(chargeAmt).add(interestAmt));
+        //
+        setDescription(payment.getDescription());
 	}	//	setPayment
 
 	/**
@@ -172,7 +255,6 @@ import org.compiere.util.Msg;
 		// Un-link Payment if TrxAmt is zero - teo_sarca BF [ 1896880 ] 
 		if (getTrxAmt().signum() == 0 && getC_Payment_ID() > 0)
 		{
-			setC_Payment_ID(I_ZERO);
 			setC_Invoice_ID(I_ZERO);
 		}
 		//	Set Line No
@@ -191,19 +273,20 @@ import org.compiere.util.Msg;
 			if (payment.getC_Invoice_ID() != 0)
 				setC_Invoice_ID(payment.getC_Invoice_ID());
 
-			MBPartner partner = MBPartner.get(payment.getCtx() , payment.getC_BPartner_ID());
-			String description = getDescription() != null
-			? getDescription() + " - " + payment.getDocumentInfo()  + " - " + partner.getValue() + " - " + partner.getName()
-			:  payment.getDocumentInfo() + " - " + partner.getValue() + " - " + partner.getName() ;
+			Optional<MBPartner> maybePartner = Optional.ofNullable(MBPartner.get(payment.getCtx() , payment.getC_BPartner_ID()));
+			String partnerDescription = maybePartner.map(partner -> " - " + partner.getValue() + " - " + partner.getName()).orElse("");
+			String description = Optional.ofNullable(getDescription())
+					.orElse(payment.getDocumentInfo() + " - " + partnerDescription)
+					.concat(payment.getDocumentInfo() + " - " + partnerDescription);
 			setDescription(description);
 	}
 		if (getC_Invoice_ID() != 0 && getC_BPartner_ID() == 0)
 		{
 			MInvoice invoice = new MInvoice (getCtx(), getC_Invoice_ID(), get_TrxName());
 			setC_BPartner_ID(invoice.getC_BPartner_ID());
-			String description = getDescription() != null
-					? getDescription() + " - " + invoice.getDocumentInfo()  + " - " + invoice.getOpenAmt()
-					:  invoice.getDocumentInfo() + " - " +invoice.getOpenAmt();
+			String description = Optional.ofNullable(getDescription())
+					.orElse( invoice.getDocumentInfo() + " - " +invoice.getOpenAmt())
+					.concat( " - " + invoice.getDocumentInfo()  + " - " + invoice.getOpenAmt());
 			setDescription(description);
 		}
 		

@@ -63,7 +63,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.adempiere.pdf.Document;
+import org.adempiere.pdf.ITextDocument;
 import org.compiere.apps.ADialog;
 import org.compiere.apps.AEnv;
 import org.compiere.apps.AMenu;
@@ -1104,7 +1104,7 @@ public class Viewer extends CFrame
 	private void cmd_archive ()
 	{
 		boolean success = false;
-		byte[] data = Document.getPDFAsArray(m_reportEngine.getLayout().getPageable(false));	//	No Copy
+		byte[] data = new ITextDocument().getPDFAsArray(m_reportEngine.getLayout().getPageable(false));	//	No Copy
 		if (data != null)
 		{
 			MArchive archive = new MArchive (Env.getCtx(), m_reportEngine.getPrintInfo(), null);
@@ -1146,6 +1146,7 @@ public class Viewer extends CFrame
 		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		chooser.setDialogTitle(Msg.getMsg(m_ctx, "Export") + ": " + getTitle());
 		//	
+		exportHandler = new ReportExportHandler(m_ctx, m_reportEngine);
 		if(exportHandler.getExportFormatList() != null) {
 			for(AbstractExportFormat exportFormat : exportHandler.getExportFormatList()) {
 				if(exportFormat.getExtension().equals("arxml")
@@ -1185,7 +1186,8 @@ public class Viewer extends CFrame
 		log.config( "File=" + outFile.getPath() + "; Type=" + ext);
 
 		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		exportHandler.exportToFile(exportName, outFile);
+		AbstractExportFormat exporter = exportHandler.getExporter(exportName);
+		exporter.exportTo(outFile);
 		cmd_drill();	//	setCursor
 	}	//	cmd_export
 
@@ -1311,7 +1313,6 @@ public class Viewer extends CFrame
 		
 		String title = null; 
 		String tableName = null;
-		boolean IsInheritFiltertoReports = true;
 
 		//	Get Find Tab Info
 		String sql = "SELECT t.AD_Tab_ID "
@@ -1324,9 +1325,9 @@ public class Viewer extends CFrame
 		int AD_Tab_ID = DB.getSQLValue(null, sql, AD_Table_ID);
 		// ASP
 		MClient client = MClient.get(Env.getCtx());
-		String ASPFilter = "";
+		String aSPFilter = "";
 		if (client.isUseASP())
-			ASPFilter =
+			aSPFilter =
 				"     AND (   AD_Tab_ID IN ( "
 				// Just ASP subscribed tabs for client "
 				+ "              SELECT t.AD_Tab_ID "
@@ -1340,32 +1341,37 @@ public class Viewer extends CFrame
 				+ "                 AND l.IsActive = 'Y' "
 				+ "                 AND cl.IsActive = 'Y' "
 				+ "                 AND t.ASP_Status = 'S') " // Show
-				+ "        OR AD_Tab_ID IN ( "
-				// + show ASP exceptions for client
-				+ "              SELECT AD_Tab_ID "
-				+ "                FROM ASP_ClientException ce "
-				+ "               WHERE ce.AD_Client_ID = " + client.getAD_Client_ID()
-				+ "                 AND ce.IsActive = 'Y' "
-				+ "                 AND ce.AD_Tab_ID IS NOT NULL "
-				+ "                 AND ce.AD_Field_ID IS NULL "
-				+ "                 AND ce.ASP_Status = 'S') " // Show
-				+ "       ) "
-				+ "   AND AD_Tab_ID NOT IN ( "
-				// minus hide ASP exceptions for client
-				+ "          SELECT AD_Tab_ID "
-				+ "            FROM ASP_ClientException ce "
-				+ "           WHERE ce.AD_Client_ID = " + client.getAD_Client_ID()
-				+ "             AND ce.IsActive = 'Y' "
-				+ "             AND ce.AD_Tab_ID IS NOT NULL "
-				+ "             AND ce.AD_Field_ID IS NULL "
-				+ "             AND ce.ASP_Status = 'H')"; // Hide
+				+ "OR "
+				//	+ show ASP exceptions for client
+				+ "	EXISTS(SELECT 1 FROM ASP_ClientException ce "
+				+ "				WHERE ce.AD_Tab_ID = t.AD_Tab_ID "
+				+ "				AND ce.AD_Client_ID = " + client.getAD_Client_ID()
+				+ "				AND ce.IsActive = 'Y' "
+				+ "				AND ce.AD_Tab_ID IS NOT NULL "
+				+ "				AND ce.AD_Field_ID IS NULL "
+				+ "				AND ce.ASP_Status = 'S')"	//	Show
+				//	minus hide ASP exceptions for client
+				+ "AND EXISTS(SELECT 1 FROM ASP_ClientException ce "
+				+ "				WHERE ce.AD_Tab_ID = t.AD_Tab_ID "
+				+ "				AND ce.AD_Client_ID = " + client.getAD_Client_ID()
+				+ "				AND ce.IsActive = 'Y' "
+				+ "				AND ce.AD_Tab_ID IS NOT NULL "
+				+ "				AND ce.AD_Field_ID IS NULL "
+				+ "				AND ce.ASP_Status = 'H')"	//	Hide
+				+ " OR EXISTS(SELECT 1 FROM ASP_Level l "
+				+ "					INNER JOIN ASP_ClientLevel cl ON(cl.ASP_Level_ID = l.ASP_Level_ID) "
+				+ "				WHERE cl.AD_Client_ID = " + client.getAD_Client_ID()
+				+ "				AND l.IsActive = 'Y' "
+				+ "				AND cl.IsActive = 'Y' "
+				+ "				AND l.Type = 'C') "	//	Show
+				+ ") ";
 		//
 		//jobriant - Feature #544
-		sql = "SELECT Name, TableName, IsInheritFiltertoReports FROM AD_Tab_v WHERE AD_Tab_ID=? " + ASPFilter;
+		sql = "SELECT t.Name, t.TableName FROM AD_Tab_v t WHERE t.AD_Tab_ID=? " + aSPFilter;
 		
 		if (!Env.isBaseLanguage(Env.getCtx(), "AD_Tab"))
-			sql = "SELECT Name, TableName FROM AD_Tab_vt WHERE AD_Tab_ID=?"
-				+ " AND AD_Language='" + Env.getAD_Language(Env.getCtx()) + "' " + ASPFilter;
+			sql = "SELECT t.Name, t.TableName FROM AD_Tab_vt t WHERE t.AD_Tab_ID=?"
+				+ " AND t.AD_Language='" + Env.getAD_Language(Env.getCtx()) + "' " + aSPFilter;
 		try
 		{
 			PreparedStatement pstmt = DB.prepareStatement(sql, null);
@@ -1376,7 +1382,6 @@ public class Viewer extends CFrame
 			{
 				title = rs.getString(1);				
 				tableName = rs.getString(2);
-				IsInheritFiltertoReports = rs.getString(3).equals("Y");
 			}
 			//
 			rs.close();
@@ -1400,15 +1405,9 @@ public class Viewer extends CFrame
 			}
 		} else
 		{
-			/*ASearch search = new ASearch (bFind,this, title,AD_Tab_ID, AD_Table_ID, tableName, m_reportEngine ,findFields, 1);
-			search = null;*/ // Adempiere approach . This time discarded...
-			//jobriant - Inherit filter to reports
 			String whereExtended = "";
-			if (IsInheritFiltertoReports) {
-				whereExtended = m_reportEngine.getWhereExtended();
-			}
-			Find find = new Find (this, m_reportEngine.getWindowNo(), title,
-					AD_Tab_ID, AD_Table_ID, tableName, whereExtended, findFields, 1);
+			whereExtended = m_reportEngine.getWhereExtended();
+			Find find = new Find (this, m_reportEngine.getWindowNo(), title, AD_Tab_ID, AD_Table_ID, tableName, whereExtended, findFields, 1);
 			m_reportEngine.setQuery(find.getQuery());
 			find.dispose();
 			find = null;

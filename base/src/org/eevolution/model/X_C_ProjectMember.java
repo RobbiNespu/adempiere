@@ -24,14 +24,14 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Model for C_ProjectMember
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0 - $Id$ */
+ *  @version Release 3.9.2 - $Id$ */
 public class X_C_ProjectMember extends PO implements I_C_ProjectMember, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20171102L;
+	private static final long serialVersionUID = 20191120L;
 
     /** Standard Constructor */
     public X_C_ProjectMember (Properties ctx, int C_ProjectMember_ID, String trxName)
@@ -40,8 +40,8 @@ public class X_C_ProjectMember extends PO implements I_C_ProjectMember, I_Persis
       /** if (C_ProjectMember_ID == 0)
         {
 			setAD_User_ID (0);
-			setC_Project_ID (0);
 			setC_ProjectMember_ID (0);
+			setC_Project_ID (0);
 			setNotificationType (null);
 // B
         } */
@@ -111,6 +111,70 @@ public class X_C_ProjectMember extends PO implements I_C_ProjectMember, I_Persis
         return new KeyNamePair(get_ID(), String.valueOf(getAD_User_ID()));
     }
 
+	/** Set BP Name.
+		@param BPName BP Name	  */
+	public void setBPName (String BPName)
+	{
+		throw new IllegalArgumentException ("BPName is virtual column");	}
+
+	/** Get BP Name.
+		@return BP Name	  */
+	public String getBPName () 
+	{
+		return (String)get_Value(COLUMNNAME_BPName);
+	}
+
+	public org.eevolution.model.I_C_ProjectMemberType getC_ProjectMemberType() throws RuntimeException
+    {
+		return (org.eevolution.model.I_C_ProjectMemberType)MTable.get(getCtx(), org.eevolution.model.I_C_ProjectMemberType.Table_Name)
+			.getPO(getC_ProjectMemberType_ID(), get_TrxName());	}
+
+	/** Set Project Member Type.
+		@param C_ProjectMemberType_ID 
+		Define the Member Type for a Project
+	  */
+	public void setC_ProjectMemberType_ID (int C_ProjectMemberType_ID)
+	{
+		if (C_ProjectMemberType_ID < 1) 
+			set_Value (COLUMNNAME_C_ProjectMemberType_ID, null);
+		else 
+			set_Value (COLUMNNAME_C_ProjectMemberType_ID, Integer.valueOf(C_ProjectMemberType_ID));
+	}
+
+	/** Get Project Member Type.
+		@return Define the Member Type for a Project
+	  */
+	public int getC_ProjectMemberType_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_ProjectMemberType_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** Set Project Member.
+		@param C_ProjectMember_ID 
+		Project Members
+	  */
+	public void setC_ProjectMember_ID (int C_ProjectMember_ID)
+	{
+		if (C_ProjectMember_ID < 1) 
+			set_ValueNoCheck (COLUMNNAME_C_ProjectMember_ID, null);
+		else 
+			set_ValueNoCheck (COLUMNNAME_C_ProjectMember_ID, Integer.valueOf(C_ProjectMember_ID));
+	}
+
+	/** Get Project Member.
+		@return Project Members
+	  */
+	public int getC_ProjectMember_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_C_ProjectMember_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
 	public org.compiere.model.I_C_Project getC_Project() throws RuntimeException
     {
 		return (org.compiere.model.I_C_Project)MTable.get(getCtx(), org.compiere.model.I_C_Project.Table_Name)
@@ -134,29 +198,6 @@ public class X_C_ProjectMember extends PO implements I_C_ProjectMember, I_Persis
 	public int getC_Project_ID () 
 	{
 		Integer ii = (Integer)get_Value(COLUMNNAME_C_Project_ID);
-		if (ii == null)
-			 return 0;
-		return ii.intValue();
-	}
-
-	/** Set Project Member.
-		@param C_ProjectMember_ID 
-		Project Member
-	  */
-	public void setC_ProjectMember_ID (int C_ProjectMember_ID)
-	{
-		if (C_ProjectMember_ID < 1) 
-			set_ValueNoCheck (COLUMNNAME_C_ProjectMember_ID, null);
-		else 
-			set_ValueNoCheck (COLUMNNAME_C_ProjectMember_ID, Integer.valueOf(C_ProjectMember_ID));
-	}
-
-	/** Get Project Member.
-		@return Project Member
-	  */
-	public int getC_ProjectMember_ID () 
-	{
-		Integer ii = (Integer)get_Value(COLUMNNAME_C_ProjectMember_ID);
 		if (ii == null)
 			 return 0;
 		return ii.intValue();

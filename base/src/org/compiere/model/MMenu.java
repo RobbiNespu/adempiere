@@ -119,8 +119,13 @@ public class MMenu extends X_AD_Menu
 	protected boolean beforeSave (boolean newRecord)
 	{
 		//	Reset info
-		if (isSummary() && getAction() != null)
-			setAction(null);
+		if (isSummary()) {
+			if(getAction() != null) {
+				setAction(null);
+			}
+			//	For Centrally Maintained
+			setIsCentrallyMaintained(false);
+		}
 		String action = getAction();
 		if (action == null)
 			action = "";
@@ -142,32 +147,6 @@ public class MMenu extends X_AD_Menu
 			setAD_Process_ID(0);
 		return true;
 	}	//	beforeSave
-	
-	
-	/**
-	 * 	After Save
-	 *	@param newRecord new
-	 *	@param success success
-	 *	@return success
-	 */
-	protected boolean afterSave (boolean newRecord, boolean success)
-	{
-		if (newRecord)
-			insert_Tree(MTree_Base.TREETYPE_Menu);
-		return success;
-	}	//	afterSave
-
-	/**
-	 * 	After Delete
-	 *	@param success
-	 *	@return deleted
-	 */
-	protected boolean afterDelete (boolean success)
-	{
-		if (success)
-			delete_Tree(MTree_Base.TREETYPE_Menu);
-		return success;
-	}	//	afterDelete
 	
 	/**
 	 *  FR [ 1966326 ]

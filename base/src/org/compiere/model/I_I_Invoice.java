@@ -22,7 +22,7 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Interface for I_Invoice
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0
+ *  @version Release 3.9.2
  */
 public interface I_I_Invoice 
 {
@@ -61,6 +61,8 @@ public interface I_I_Invoice
 	  * Performing or initiating organization
 	  */
 	public int getAD_OrgTrx_ID();
+
+	public org.compiere.model.I_AD_Org getAD_OrgTrx() throws RuntimeException;
 
     /** Column name AD_Org_ID */
     public static final String COLUMNNAME_AD_Org_ID = "AD_Org_ID";
@@ -715,6 +717,15 @@ public interface I_I_Invoice
 	  */
 	public BigDecimal getPriceActual();
 
+    /** Column name PriceListName */
+    public static final String COLUMNNAME_PriceListName = "PriceListName";
+
+	/** Set Price List Name	  */
+	public void setPriceListName (String PriceListName);
+
+	/** Get Price List Name	  */
+	public String getPriceListName();
+
     /** Column name Processed */
     public static final String COLUMNNAME_Processed = "Processed";
 
@@ -816,6 +827,15 @@ public interface I_I_Invoice
 	public int getSalesRep_ID();
 
 	public org.compiere.model.I_AD_User getSalesRep() throws RuntimeException;
+
+    /** Column name SalesRep_Name */
+    public static final String COLUMNNAME_SalesRep_Name = "SalesRep_Name";
+
+	/** Set Sales Representative	  */
+	public void setSalesRep_Name (String SalesRep_Name);
+
+	/** Get Sales Representative	  */
+	public String getSalesRep_Name();
 
     /** Column name TaxAmt */
     public static final String COLUMNNAME_TaxAmt = "TaxAmt";

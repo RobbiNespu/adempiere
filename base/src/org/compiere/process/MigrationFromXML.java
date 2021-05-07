@@ -25,6 +25,7 @@ import org.compiere.util.Ini;
 import org.compiere.util.Msg;
 import org.compiere.util.Trx;
 import org.eevolution.service.dsl.ProcessBuilder;
+import org.spin.util.XMLUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -77,9 +78,10 @@ public class MigrationFromXML extends MigrationFromXMLAbstract {
 		dbf.setIgnoringElementContentWhitespace(true);
 
 		// file can be a file or directory
-		File file = new File(getFileName());		
+		File file = new File(getFilePathOrName());
 
 		try {
+			XMLUtils.setDefaultFeatures(dbf);
 			builder = dbf.newDocumentBuilder();
 			
 			List<File> migrationFiles = new ArrayList<File>();
@@ -129,12 +131,10 @@ public class MigrationFromXML extends MigrationFromXMLAbstract {
 		if (file.getName().equals("build.xml")) return; 
 		
 		log.log(Level.CONFIG, "Loading file: " + file);
-		
 		Document doc = builder.parse(file);
 
 		NodeList migrations = doc.getDocumentElement().getElementsByTagName("Migration");
 		for ( int i = 0; i < migrations.getLength(); i++ ) {
-
 			Element element = (Element) migrations.item(i);
 
 			// Top level - create a new transaction for every migration and commit
@@ -144,18 +144,18 @@ public class MigrationFromXML extends MigrationFromXMLAbstract {
 				try {
 						migration = MMigration.fromXmlNode(ctx, element, trxName);
 						if (migration == null) {
-							log.log(Level.CONFIG, "XML file not a Migration. Skipping.");
+							log.log(Level.INFO, "XML file not a Migration. Skipping.");
 							return;
 						}
 
 						if (isApply()) {
                             if (MMigration.STATUSCODE_Applied.equals(migration.getStatusCode())) {
-                                log.log(Level.CONFIG, migration.toString() + " ---> Migration already applied - skipping.");
+                                log.log(Level.INFO, migration.toString() + " ---> Migration already applied - skipping.");
                                 return;
                             }
                             if (MMigration.STATUSCODE_Failed.equals(migration.getStatusCode())
                         		|| MMigration.STATUSCODE_PartiallyApplied.equals(migration.getStatusCode())) {
-                                log.log(Level.CONFIG, migration.toString() + " ---> Migration exists but has to be rolled back.");
+                                log.log(Level.INFO, migration.toString() + " ---> Migration exists but has to be rolled back.");
                                 // Rollback the migration to try and correct the error.
     							applyMigration(migration.getCtx(), migration.getAD_Migration_ID(), trxName);                                
                             }
@@ -163,9 +163,10 @@ public class MigrationFromXML extends MigrationFromXMLAbstract {
 							applyMigration(migration.getCtx(), migration.getAD_Migration_ID(), trxName);
 						}
 				} catch (AdempiereException|SQLException e) {
-					if (!isForce())
-					{
+					if (!isForce()) {
 						throw new AdempiereException("Loading migration from " + file.toString() + " failed.", e);
+					} else {
+						log.log(Level.SEVERE, e.getLocalizedMessage());
 					}
 				}
 			});
@@ -174,13 +175,14 @@ public class MigrationFromXML extends MigrationFromXMLAbstract {
 
 	private void applyMigration(Properties ctx  , int migrationId, String trxName) throws AdempiereException {
 		ProcessInfo processInfo = ProcessBuilder.create(ctx)
-				.process(53173)
+				.process(MigrationApply.getProcessId())
 				.withTitle("Apply migration")
 				.withRecordId(MMigration.Table_ID , migrationId)
 				.withParameter("FailOnError",true)
+				.withParameter(ISFORCE, isForce())
 				.execute(trxName);
 
-		log.log(Level.CONFIG, "Process=" + processInfo.getTitle() + " Error="+processInfo.isError() + " Summary=" + processInfo.getSummary());
+		log.log(Level.INFO, "Process=" + processInfo.getTitle() + " Error="+processInfo.isError() + " Summary=" + processInfo.getSummary());
 		if (processInfo.isError())
 			throw new AdempiereException(processInfo.getSummary());
 	}

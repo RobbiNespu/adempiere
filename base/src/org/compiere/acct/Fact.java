@@ -715,6 +715,8 @@ public final class Fact
 			}
 			
 			MDistribution distribution = distributions.get(0);
+			//Set the transaction name based on posting document, if not a null trx name is used based on the cache causing the lock database
+			distribution.set_TrxName(get_TrxName());
 			List<MDistributionLine> distributionLines = distribution.getLines(false);
 
 			if(distribution.getPercentTotal().signum() != 0)
@@ -824,14 +826,14 @@ public final class Fact
 				// F3P end
 
 				if (distributionLine.isInvertAccountSign()) {
-					if (distributionLine.getAmt().signum() < 0)
+					if (distributionLine.getAmt() != null && distributionLine.getAmt().signum() < 0)
 						factLine.setAmtSource(factLineSource.getC_Currency_ID(), null, distributionLine.getAmt().abs());
 					else
 						factLine.setAmtSource(factLineSource.getC_Currency_ID(), distributionLine.getAmt(), null);
 				}
 				else
 				{
-					if (distributionLine.getAmt().signum() < 0)
+					if (distributionLine.getAmt() != null && distributionLine.getAmt().signum() < 0)
 						factLine.setAmtSource(factLineSource.getC_Currency_ID(), null, distributionLine.getAmt().abs());
 					else
 						factLine.setAmtSource(factLineSource.getC_Currency_ID(), distributionLine.getAmt(), null);

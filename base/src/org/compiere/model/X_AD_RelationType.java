@@ -23,14 +23,14 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Model for AD_RelationType
  *  @author Adempiere (generated) 
- *  @version Release 3.9.0 - $Id$ */
+ *  @version Release 3.9.2 - $Id$ */
 public class X_AD_RelationType extends PO implements I_AD_RelationType, I_Persistent 
 {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20170731L;
+	private static final long serialVersionUID = 20191120L;
 
     /** Standard Constructor */
     public X_AD_RelationType (Properties ctx, int AD_RelationType_ID, String trxName)
@@ -217,6 +217,58 @@ public class X_AD_RelationType extends PO implements I_AD_RelationType, I_Persis
 	public static final String ROLE_SOURCE_Order = "Order";
 	/** Invoice = Invoice */
 	public static final String ROLE_SOURCE_Invoice = "Invoice";
+	/** Invoice Open = InvoiceOpen */
+	public static final String ROLE_SOURCE_InvoiceOpen = "InvoiceOpen";
+	/** Unallocated Payments = UnallocatedPayments */
+	public static final String ROLE_SOURCE_UnallocatedPayments = "UnallocatedPayments";
+	/** Sales Invoice Open = SalesInvoiceOpen */
+	public static final String ROLE_SOURCE_SalesInvoiceOpen = "SalesInvoiceOpen";
+	/** Vendor Invoice Open = VendorInvoiceOpen */
+	public static final String ROLE_SOURCE_VendorInvoiceOpen = "VendorInvoiceOpen";
+	/** Sales Invoice Allocated = SalesInvoiceAllocated */
+	public static final String ROLE_SOURCE_SalesInvoiceAllocated = "SalesInvoiceAllocated";
+	/** Vendor Invoice Allocated = VendorInvoiceAllocated */
+	public static final String ROLE_SOURCE_VendorInvoiceAllocated = "VendorInvoiceAllocated";
+	/** Payment Allocated = PaymentAllocated */
+	public static final String ROLE_SOURCE_PaymentAllocated = "PaymentAllocated";
+	/** Invoice Matched = InvoiceMatched */
+	public static final String ROLE_SOURCE_InvoiceMatched = "InvoiceMatched";
+	/** Order Matched = OrderMatched */
+	public static final String ROLE_SOURCE_OrderMatched = "OrderMatched";
+	/** Receipt Matched = ReceiptMatched */
+	public static final String ROLE_SOURCE_ReceiptMatched = "ReceiptMatched";
+	/** View Matched Receipt Line = ViewMatchedReceiptLine */
+	public static final String ROLE_SOURCE_ViewMatchedReceiptLine = "ViewMatchedReceiptLine";
+	/** View Matched Order Line = ViewMatchedOrdertLine */
+	public static final String ROLE_SOURCE_ViewMatchedOrderLine = "ViewMatchedOrdertLine";
+	/** Deposit from Cash = DepositFromCash */
+	public static final String ROLE_SOURCE_DepositFromCash = "DepositFromCash";
+	/** Cash from Deposit = CashFromDeposit */
+	public static final String ROLE_SOURCE_CashFromDeposit = "CashFromDeposit";
+	/** Payments from Loan = PaymentsFromLoan */
+	public static final String ROLE_SOURCE_PaymentsFromLoan = "PaymentsFromLoan";
+	/** Loan of Payment = LoanOfPayment */
+	public static final String ROLE_SOURCE_LoanOfPayment = "LoanOfPayment";
+	/** Payment Selection from Loan = PaySelectionFromLoan */
+	public static final String ROLE_SOURCE_PaymentSelectionFromLoan = "PaySelectionFromLoan";
+	/** Loan of Payment Selection = LoanOfPaySelection */
+	public static final String ROLE_SOURCE_LoanOfPaymentSelection = "LoanOfPaySelection";
+	/** Invoice Customer From Loan = InvoiceCustomerFromLoan */
+	public static final String ROLE_SOURCE_InvoiceCustomerFromLoan = "InvoiceCustomerFromLoan";
+	/** Loan of Invoice Customer = LoanOfInvoiceCustomer */
+	public static final String ROLE_SOURCE_LoanOfInvoiceCustomer = "LoanOfInvoiceCustomer";
+	/** Batch Transaction from Agreement = BatchFromAgreement */
+	public static final String ROLE_SOURCE_BatchTransactionFromAgreement = "BatchFromAgreement";
+	/** Agreement from Batch Transaction = AgreementFromBatch */
+	public static final String ROLE_SOURCE_AgreementFromBatchTransaction = "AgreementFromBatch";
+	/** Batch Transaction from Invoice (Customer) = BatchFromInvoiceCustomer */
+	public static final String ROLE_SOURCE_BatchTransactionFromInvoiceCustomer = "BatchFromInvoiceCustomer";
+	/** Invoice (Customer) from Batch Transaction = InvoiceCustomerFromBatch */
+	public static final String ROLE_SOURCE_InvoiceCustomerFromBatchTransaction = "InvoiceCustomerFromBatch";
+	/** Identified Payment = IdentifiedPayment */
+	public static final String ROLE_SOURCE_IdentifiedPayment = "IdentifiedPayment";
+	/** Unidentified Payment = UnidentifiedPayment */
+	public static final String ROLE_SOURCE_UnidentifiedPayment = "UnidentifiedPayment";
 	/** Set Source Role.
 		@param Role_Source 
 		If set, this role will be used as label for the zoom destination instead of the destinations's window name
@@ -241,6 +293,58 @@ public class X_AD_RelationType extends PO implements I_AD_RelationType, I_Persis
 	public static final String ROLE_TARGET_Order = "Order";
 	/** Invoice = Invoice */
 	public static final String ROLE_TARGET_Invoice = "Invoice";
+	/** Invoice Open = InvoiceOpen */
+	public static final String ROLE_TARGET_InvoiceOpen = "InvoiceOpen";
+	/** Unallocated Payments = UnallocatedPayments */
+	public static final String ROLE_TARGET_UnallocatedPayments = "UnallocatedPayments";
+	/** Sales Invoice Open = SalesInvoiceOpen */
+	public static final String ROLE_TARGET_SalesInvoiceOpen = "SalesInvoiceOpen";
+	/** Vendor Invoice Open = VendorInvoiceOpen */
+	public static final String ROLE_TARGET_VendorInvoiceOpen = "VendorInvoiceOpen";
+	/** Sales Invoice Allocated = SalesInvoiceAllocated */
+	public static final String ROLE_TARGET_SalesInvoiceAllocated = "SalesInvoiceAllocated";
+	/** Vendor Invoice Allocated = VendorInvoiceAllocated */
+	public static final String ROLE_TARGET_VendorInvoiceAllocated = "VendorInvoiceAllocated";
+	/** Payment Allocated = PaymentAllocated */
+	public static final String ROLE_TARGET_PaymentAllocated = "PaymentAllocated";
+	/** Invoice Matched = InvoiceMatched */
+	public static final String ROLE_TARGET_InvoiceMatched = "InvoiceMatched";
+	/** Order Matched = OrderMatched */
+	public static final String ROLE_TARGET_OrderMatched = "OrderMatched";
+	/** Receipt Matched = ReceiptMatched */
+	public static final String ROLE_TARGET_ReceiptMatched = "ReceiptMatched";
+	/** View Matched Receipt Line = ViewMatchedReceiptLine */
+	public static final String ROLE_TARGET_ViewMatchedReceiptLine = "ViewMatchedReceiptLine";
+	/** View Matched Order Line = ViewMatchedOrdertLine */
+	public static final String ROLE_TARGET_ViewMatchedOrderLine = "ViewMatchedOrdertLine";
+	/** Deposit from Cash = DepositFromCash */
+	public static final String ROLE_TARGET_DepositFromCash = "DepositFromCash";
+	/** Cash from Deposit = CashFromDeposit */
+	public static final String ROLE_TARGET_CashFromDeposit = "CashFromDeposit";
+	/** Payments from Loan = PaymentsFromLoan */
+	public static final String ROLE_TARGET_PaymentsFromLoan = "PaymentsFromLoan";
+	/** Loan of Payment = LoanOfPayment */
+	public static final String ROLE_TARGET_LoanOfPayment = "LoanOfPayment";
+	/** Payment Selection from Loan = PaySelectionFromLoan */
+	public static final String ROLE_TARGET_PaymentSelectionFromLoan = "PaySelectionFromLoan";
+	/** Loan of Payment Selection = LoanOfPaySelection */
+	public static final String ROLE_TARGET_LoanOfPaymentSelection = "LoanOfPaySelection";
+	/** Invoice Customer From Loan = InvoiceCustomerFromLoan */
+	public static final String ROLE_TARGET_InvoiceCustomerFromLoan = "InvoiceCustomerFromLoan";
+	/** Loan of Invoice Customer = LoanOfInvoiceCustomer */
+	public static final String ROLE_TARGET_LoanOfInvoiceCustomer = "LoanOfInvoiceCustomer";
+	/** Batch Transaction from Agreement = BatchFromAgreement */
+	public static final String ROLE_TARGET_BatchTransactionFromAgreement = "BatchFromAgreement";
+	/** Agreement from Batch Transaction = AgreementFromBatch */
+	public static final String ROLE_TARGET_AgreementFromBatchTransaction = "AgreementFromBatch";
+	/** Batch Transaction from Invoice (Customer) = BatchFromInvoiceCustomer */
+	public static final String ROLE_TARGET_BatchTransactionFromInvoiceCustomer = "BatchFromInvoiceCustomer";
+	/** Invoice (Customer) from Batch Transaction = InvoiceCustomerFromBatch */
+	public static final String ROLE_TARGET_InvoiceCustomerFromBatchTransaction = "InvoiceCustomerFromBatch";
+	/** Identified Payment = IdentifiedPayment */
+	public static final String ROLE_TARGET_IdentifiedPayment = "IdentifiedPayment";
+	/** Unidentified Payment = UnidentifiedPayment */
+	public static final String ROLE_TARGET_UnidentifiedPayment = "UnidentifiedPayment";
 	/** Set Target Role.
 		@param Role_Target 
 		If set, this role will be used as label for the zoom destination instead of the destinations's window name

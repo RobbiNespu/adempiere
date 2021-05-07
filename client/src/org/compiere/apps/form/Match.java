@@ -18,6 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.Optional;
 import java.util.Vector;
 import java.util.logging.Level;
 
@@ -29,8 +30,10 @@ import org.compiere.model.MInvoiceLine;
 import org.compiere.model.MMatchInv;
 import org.compiere.model.MMatchPO;
 import org.compiere.model.MOrderLine;
+import org.compiere.model.MPeriod;
 import org.compiere.model.MRole;
 import org.compiere.model.MStorage;
+import org.compiere.model.MSysConfig;
 import org.compiere.process.DocumentEngine;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
@@ -42,6 +45,10 @@ import org.compiere.util.Trx;
 /**
  *  @author eEvolution author Victor Perez <victor.perez@e-evolution.com>
  *			<li>Implement Reverse Accrual for all document https://github.com/adempiere/adempiere/issues/1348</>
+ *
+ *  @author Systemhaus Westfalia SusanneCalderon <susanne.de.calderon@westfalia-it.com>
+ *  <li>Implement Reverse Accrual, ommit createCostDetail and implement reverseIt for match_Inv of cancelled documents
+ *  https://github.com/adempiere/adempiere/issues/1918
  */
 public class Match
 {
@@ -162,7 +169,7 @@ public class Match
 		KeyNamePair lineMatched = (KeyNamePair)xMatchedTable.getValueAt(matchedRow, I_Line);
 		KeyNamePair Product = (KeyNamePair)xMatchedTable.getValueAt(matchedRow, I_Product);
 
-		double totalQty = m_xMatched.doubleValue();
+		Optional<BigDecimal> totalQty = Optional.ofNullable(m_xMatched);
 
 		//  Matched To
 		for (int row = 0; row < xMatchedToTable.getRowCount(); row++)
@@ -178,13 +185,20 @@ public class Match
 				KeyNamePair lineMatchedTo = (KeyNamePair)xMatchedToTable.getValueAt(row, I_Line);
 
 				//	Qty
-				double qty = 0.0;
+				Optional<BigDecimal> qty = Optional.empty();
+				Optional<BigDecimal> docQty = Optional.ofNullable((BigDecimal)xMatchedToTable.getValueAt(row, I_QTY));
+				Optional<BigDecimal> matchedQty = Optional.ofNullable((BigDecimal)xMatchedToTable.getValueAt(row, I_MATCHED));
+				
 				if (matchMode == MODE_NOTMATCHED)
-					qty = ((Double)xMatchedToTable.getValueAt(row, I_QTY)).doubleValue();	//  doc
-				qty -= ((Double)xMatchedToTable.getValueAt(row, I_MATCHED)).doubleValue();  //  matched
-				if (qty > totalQty)
+					qty = docQty;	//  doc
+				
+				qty = Optional.ofNullable(qty.orElse(Env.ZERO).subtract(matchedQty.orElse(Env.ZERO)));
+
+				if (qty.isPresent()
+						&& qty.get().compareTo(totalQty.orElse(Env.ZERO)) > 0)
 					qty = totalQty;
-				totalQty -= qty;
+				if (totalQty.isPresent())
+					totalQty = Optional.ofNullable(totalQty.get().subtract(qty.orElse(Env.ZERO)));
 
 				//  Invoice or PO
 				boolean invoice = true;
@@ -208,7 +222,7 @@ public class Match
 				//  Create it
 				String innerTrxName = Trx.createTrxName("Match");
 				Trx innerTrx = Trx.get(innerTrxName, true);
-				if (createMatchRecord(invoice, M_InOutLine_ID, Line_ID, new BigDecimal(qty), innerTrxName))
+				if (createMatchRecord(invoice, M_InOutLine_ID, Line_ID, qty.orElse(Env.ZERO), innerTrxName))
 					innerTrx.commit();
 				else
 					innerTrx.rollback();
@@ -250,7 +264,7 @@ public class Match
 			m_sql.append(" AND lin.M_Product_ID=").append(Product.getKey());
 
 		//  calculate qty
-		double docQty = ((Double)xMatchedTable.getValueAt(row, I_QTY)).doubleValue();
+		BigDecimal docQty = (BigDecimal)xMatchedTable.getValueAt(row, I_QTY);
 		if (sameQty)
 			m_sql.append(" AND ").append(m_qtyColumn).append("=").append(docQty);
 		//  ** Load Table **
@@ -418,16 +432,36 @@ public class Match
 			//	Create Shipment - Invoice Link
 			if (iLine.getM_Product_ID() != 0)
 			{
-				MMatchInv match = new MMatchInv (iLine, null, qty);
+				Boolean useReceiptDateAcct = MSysConfig.getBooleanValue("MATCHINV_USE_DATEACCT_FROM_RECEIPT",
+						false, iLine.getAD_Client_ID());
+				MMatchInv match = null;
+				Boolean isreceiptPeriodOpen = MPeriod.isOpen(Env.getCtx(), sLine.getParent().getDateAcct(),
+						sLine.getParent().getC_DocType().getDocBaseType(), sLine.getParent().getAD_Org_ID());
+				Boolean isInvoicePeriodOpen = MPeriod.isOpen(Env.getCtx(), iLine.getParent().getDateAcct(),
+						iLine.getParent().getC_DocType().getDocBaseType(), iLine.getParent().getAD_Org_ID());
+
+				if (useReceiptDateAcct & isreceiptPeriodOpen) {
+					match= new MMatchInv(iLine,sLine.getParent().getDateAcct() , qty);
+				}
+				else if (isInvoicePeriodOpen){
+					match = new MMatchInv(iLine, iLine.getParent().getDateAcct(), qty);
+				}
+				else {
+					match = new MMatchInv(iLine, null, qty);
+				}
 				match.setM_InOutLine_ID(M_InOutLine_ID);
+				match.saveEx();
 				if (match.save()) {
 					success = true;
-					if (MClient.isClientAccountingImmediate()) {
-						String ignoreError = DocumentEngine.postImmediate(match.getCtx(), match.getAD_Client_ID(), match.get_Table_ID(), match.get_ID(), true, match.get_TrxName());						
-					}
 				}
 				else
 					log.log(Level.SEVERE, "Inv Match not created: " + match);
+
+				if (match.getC_InvoiceLine().getC_Invoice().getDocStatus().equals("VO") ||
+						match.getC_InvoiceLine().getC_Invoice().getDocStatus().equals("RE") ||
+						match.getM_InOutLine().getM_InOut().getDocStatus().equals("VO") ||
+						match.getM_InOutLine().getM_InOut().getDocStatus().equals("RE"))
+					match.reverseIt(match.getDateAcct());
 			}
 			else
 				success = true;
